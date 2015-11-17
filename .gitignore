@@ -1,0 +1,8 @@
+*
+!.gitignore
+!/FirstTry/
+!FirstTry/*.cpp
+!FirstTry/*.h
+/FirstTry/stdafx.h
+/FirstTry/stdafx.cpp
+/FirstTry/targetver.h
