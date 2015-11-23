@@ -5,13 +5,17 @@
 
 class uctNode{
 public:
-	//这个分支下总共下了多少盘，play=blackWin+whiteWin
+	//这个分支下总共下了多少盘
 	int play;
-	//这个分支下黑棋总共赢了多少盘
-	int blackWin;
-	//这个分支下白棋总共赢了多少盘
-	int whiteWin;
-	double score;
+	//这个分支下黑-白为多少子
+	int playResult;
+	bool color;
 	int pos;
-	std::vector<uctNode> nextMove;
+	bool opened;
+	std::vector<uctNode*> nextMove;
+	uctNode* lastMove;
+	uctNode(int p, bool c, uctNode *last);
+	~uctNode();
+	void addPos(uctNode* p);
+	void result(int r);
 };

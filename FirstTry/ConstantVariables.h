@@ -1,6 +1,7 @@
 #pragma once
 
 #include "math.h"
+#include "uctNode.h"
 
 #define SIZE 15
 #define IMPACT 32
@@ -16,3 +17,9 @@
 #define MEDIANMINMAX 50
 #define TRYTIME 100
 #define MAXSTEP 60
+#define TIMELIMIT 2
+#define MAXGAMES 250
+#define MONTECARLORANGE 4
+
+bool cmpLess(const uctNode *a, const uctNode *b);
+bool cmpMore(const uctNode *a, const uctNode *b);

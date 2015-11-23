@@ -6,6 +6,10 @@
 #include "queue"
 #include "time.h"
 #include "bitset"
+#include "uctNode.h"
+#include "vector"
+#include "algorithm"
+
 
 bool board::checkColor()
 {
@@ -24,7 +28,7 @@ std::bitset<SIZE*SIZE> board::copy(std::bitset<SIZE*SIZE> &a)
 }
 
 //pos:AI选择要下的位置,-1表示pass lastPos:上一步用户下的位置,-1表示上一步没有下
-void board::aiMoveGreedy(int &pos, int lastPos)
+void board::aiMoveGreedy(int &pos, int lastPos, int rivalPos)
 {
 	std::bitset<SIZE*SIZE> storeBlack = copy(black);
 	std::bitset<SIZE*SIZE> storeWhite = copy(white);
@@ -67,7 +71,7 @@ void board::aiMoveGreedy(int &pos, int lastPos)
 }
 
 //pos:AI选择要下的位置,-1表示pass lastPos:上一步用户下的位置,-1表示上一步没有下
-void board::aiMoveGreedy2(int &pos, int lastPos)
+void board::aiMoveGreedy2(int &pos, int lastPos, int rivalPos)
 {
 	std::bitset<SIZE*SIZE> storeBlack = copy(black);
 	std::bitset<SIZE*SIZE> storeWhite = copy(white);
@@ -114,21 +118,23 @@ void board::aiMoveGreedy2(int &pos, int lastPos)
 	pos = storePos;
 }
 
-void board::aiMove(int &pos, int lastPos)
+void board::aiMove(int &pos, int lastPos, int rivalPos)
 {
 	++step;
-	if (step < STARTMEDIAN)
+	/*if (step < STARTMEDIAN)
 	{
-		aiMoveStart(pos, lastPos);
+		aiMoveStart(pos, lastPos, rivalPos);
 	}
 	else if (step<MEDIANMINMAX)
 	{
-		aiMoveGreedy2(pos, lastPos);
+		aiMoveGreedy2(pos, lastPos, rivalPos);
 	}
 	else
 	{
-		aiMoveMinMax(pos, lastPos);
-	}
+		aiMoveMinMax(pos, lastPos, rivalPos);
+	}*/
+	aiMoveMonteCarlo(pos, lastPos, rivalPos);
+	lastPosition = pos;
 }
 
 //true-black,white-white,user
@@ -137,14 +143,14 @@ board::board(bool c)
 	color = c;
 	srand(time(NULL));
 	step = 0;
-	lastPos = -1;
+	lastPosition = -1;
 }
 
 board::board(const board& b)
 {
 	color = b.color;
 	step = b.step;
-	lastPos = b.lastPos;
+	lastPosition = b.lastPosition;
 	for (int i = 0; i < SIZE*SIZE; ++i)
 	{
 		if (b.black[i]) black.set(i);
@@ -480,23 +486,25 @@ int board::calcLiberty(int x, int y)
 			if (tmpx != 0)
 			{
 				if (black[tmp - 1] && usedBlocks.find(tmp - 1) == usedBlocks.end()) blocks.push(tmp - 1);
-				else if (!white[tmp - 1] && !black[tmp - 1]) return 1;
+				else if (!white[tmp - 1] && !black[tmp - 1]) liberty.insert(tmp - 1);
 			}
 			if (tmpx != SIZE - 1)
 			{
 				if (black[tmp + 1] && usedBlocks.find(tmp + 1) == usedBlocks.end()) blocks.push(tmp + 1);
-				else if (!white[tmp + 1] && !black[tmp + 1]) return 1;
+				else if (!white[tmp + 1] && !black[tmp + 1]) liberty.insert(tmp - 1);
 			}
 			if (tmpy != 0)
 			{
 				if (black[tmp - SIZE] && usedBlocks.find(tmp - SIZE) == usedBlocks.end()) blocks.push(tmp - SIZE);
-				else if (!white[tmp - SIZE] && !black[tmp - SIZE]) return 1;
+				else if (!white[tmp - SIZE] && !black[tmp - SIZE]) liberty.insert(tmp - 1);
 			}
 			if (tmpy != SIZE-1)
 			{
 				if (black[tmp + SIZE] && usedBlocks.find(tmp + SIZE) == usedBlocks.end()) blocks.push(tmp + SIZE);
-				else if (!white[tmp + SIZE] && !black[tmp + SIZE]) return 1;
+				else if (!white[tmp + SIZE] && !black[tmp + SIZE]) liberty.insert(tmp - 1);
 			}
+			if (liberty.size() > 1) return 2;
+			else if (liberty.size() == 1) return 1;
 		}
 		return 0;
 	}
@@ -513,23 +521,25 @@ int board::calcLiberty(int x, int y)
 			if (tmpx != 0)
 			{
 				if (white[tmp - 1] && usedBlocks.find(tmp - 1) == usedBlocks.end()) blocks.push(tmp - 1);
-				else if (!black[tmp - 1] && !white[tmp - 1]) return 1;
+				else if (!black[tmp - 1] && !white[tmp - 1]) liberty.insert(tmp - 1);
 			}
 			if (tmpx != SIZE - 1)
 			{
 				if (white[tmp + 1] && usedBlocks.find(tmp + 1) == usedBlocks.end()) blocks.push(tmp + 1);
-				else if (!black[tmp + 1] && !white[tmp + 1]) return 1;
+				else if (!black[tmp + 1] && !white[tmp + 1]) liberty.insert(tmp - 1);
 			}
 			if (tmpy != 0)
 			{
 				if (white[tmp - SIZE] && usedBlocks.find(tmp - SIZE) == usedBlocks.end()) blocks.push(tmp - SIZE);
-				else if (!black[tmp - SIZE] && !white[tmp - SIZE]) return 1;
+				else if (!black[tmp - SIZE] && !white[tmp - SIZE]) liberty.insert(tmp - 1);
 			}
 			if (tmpy != SIZE - 1)
 			{
 				if (white[tmp + SIZE] && usedBlocks.find(tmp + SIZE) == usedBlocks.end()) blocks.push(tmp + SIZE);
-				else if (!black[tmp + SIZE] && !white[tmp + SIZE]) return 1;
+				else if (!black[tmp + SIZE] && !white[tmp + SIZE]) liberty.insert(tmp - 1);
 			}
+			if (liberty.size() > 1) return 2;
+			else if (liberty.size() == 1) return 1;
 		}
 		return 0;
 	}
@@ -693,7 +703,7 @@ bool board::take(int x, int y)
 	0	1
 	2	3
 */
-void board::aiMoveStart(int &pos, int lastPos)
+void board::aiMoveStart(int &pos, int lastPos, int rivalPos)
 {
 	int b0, b1, b2, b3;
 	int w0, w1, w2, w3;
@@ -727,7 +737,7 @@ void board::aiMoveStart(int &pos, int lastPos)
 	}
 	else
 	{
-		aiMoveGreedy2(pos, lastPos);
+		aiMoveGreedy2(pos, lastPos, rivalPos);
 		return;
 	}
 }
@@ -750,7 +760,7 @@ void board::cornerCnt(int x0, int y0, int x1, int y1, int &b, int &w)
 	}
 }
 
-void board::aiMoveMinMax(int &pos, int lastPos)
+void board::aiMoveMinMax(int &pos, int lastPos, int rivalPos)
 {
 	std::bitset<SIZE*SIZE> storeBlack = copy(black);
 	std::bitset<SIZE*SIZE> storeWhite = copy(white);
@@ -856,12 +866,138 @@ void board::aiMoveMinMax(int &pos, int lastPos)
 	}
 	if (storePos == -1)
 	{
-		aiMoveGreedy2(pos, lastPos);
+		aiMoveGreedy2(pos, lastPos, rivalPos);
 	}
 	else
 	{
 		pos = storePos;
 	}	
+}
+
+//该位置是否可下c色，判断是否是四角四边中间，判断周围有没有对手棋子，有的话判断下子能否提子，能的话ok，不能的话说明下子保证无提子，下子，判断气，再复位
+bool board::available(int pos, bool c, int lastPos)
+{
+	if (pos < 0 || pos >= SIZE*SIZE) return false;
+	if (pos == lastPos) return false;
+	if (black[pos] || white[pos]) return false;
+	if (c)
+	{
+		if (pos == 0)
+		{
+			if (white[pos + 1] && calcLiberty((pos + 1) % SIZE, (pos + 1) / SIZE) == 1) return true;
+			if (white[pos + SIZE] && calcLiberty((pos + SIZE) % SIZE, (pos + SIZE) / SIZE) == 1) return true;
+		}
+		else if (pos == SIZE - 1)
+		{
+			if (white[pos - 1] && calcLiberty((pos - 1) % SIZE, (pos - 1) / SIZE) == 1) return true;
+			if (white[pos + SIZE] && calcLiberty((pos + SIZE) % SIZE, (pos + SIZE) / SIZE) == 1) return true;
+		}
+		else if (pos == SIZE*SIZE-SIZE)
+		{
+			if (white[pos + 1] && calcLiberty((pos + 1) % SIZE, (pos + 1) / SIZE) == 1) return true;
+			if (white[pos - SIZE] && calcLiberty((pos - SIZE) % SIZE, (pos - SIZE) / SIZE) == 1) return true;
+		}
+		else if (pos == SIZE*SIZE - 1)
+		{
+			if (white[pos - 1] && calcLiberty((pos - 1) % SIZE, (pos - 1) / SIZE) == 1) return true;
+			if (white[pos - SIZE] && calcLiberty((pos - SIZE) % SIZE, (pos - SIZE) / SIZE) == 1) return true;
+		}
+		else if (pos > 0 && pos < SIZE - 1)
+		{
+			if (white[pos + 1] && calcLiberty((pos + 1) % SIZE, (pos + 1) / SIZE) == 1) return true;
+			if (white[pos - 1] && calcLiberty((pos - 1) % SIZE, (pos - 1) / SIZE) == 1) return true;
+			if (white[pos + SIZE] && calcLiberty((pos + SIZE) % SIZE, (pos + SIZE) / SIZE) == 1) return true;
+		}
+		else if (pos>SIZE*SIZE - SIZE && pos < SIZE*SIZE - 1)
+		{
+			if (white[pos + 1] && calcLiberty((pos + 1) % SIZE, (pos + 1) / SIZE) == 1) return true;
+			if (white[pos - 1] && calcLiberty((pos - 1) % SIZE, (pos - 1) / SIZE) == 1) return true;
+			if (white[pos - SIZE] && calcLiberty((pos - SIZE) % SIZE, (pos - SIZE) / SIZE) == 1) return true;
+		}
+		else if (pos%SIZE == 0 && pos / SIZE>0 && pos / SIZE < SIZE - 1)
+		{
+			if (white[pos + 1] && calcLiberty((pos + 1) % SIZE, (pos + 1) / SIZE) == 1) return true;
+			if (white[pos - SIZE] && calcLiberty((pos - SIZE) % SIZE, (pos - SIZE) / SIZE) == 1) return true;
+			if (white[pos + SIZE] && calcLiberty((pos + SIZE) % SIZE, (pos + SIZE) / SIZE) == 1) return true;
+		}
+		else if (pos%SIZE == SIZE - 1 && pos / SIZE>0 && pos / SIZE < SIZE - 1)
+		{
+			if (white[pos - 1] && calcLiberty((pos - 1) % SIZE, (pos - 1) / SIZE) == 1) return true;
+			if (white[pos - SIZE] && calcLiberty((pos - SIZE) % SIZE, (pos - SIZE) / SIZE) == 1) return true;
+			if (white[pos + SIZE] && calcLiberty((pos + SIZE) % SIZE, (pos + SIZE) / SIZE) == 1) return true;
+		}
+		else
+		{
+			if (white[pos + 1] && calcLiberty((pos + 1) % SIZE, (pos + 1) / SIZE) == 1) return true;
+			if (white[pos - 1] && calcLiberty((pos - 1) % SIZE, (pos - 1) / SIZE) == 1) return true;
+			if (white[pos - SIZE] && calcLiberty((pos - SIZE) % SIZE, (pos - SIZE) / SIZE) == 1) return true;
+			if (white[pos + SIZE] && calcLiberty((pos + SIZE) % SIZE, (pos + SIZE) / SIZE) == 1) return true;
+		}
+		black.set(pos);
+		int liberty = calcLiberty(pos%SIZE, pos / SIZE);
+		black.reset(pos);
+		//printf("check: x=%d y=%d liberty=%d\n", pos%SIZE, pos / SIZE, liberty);
+		return liberty != 0;
+	}
+	else
+	{
+		if (pos == 0)
+		{
+			if (black[pos + 1] && calcLiberty((pos + 1) % SIZE, (pos + 1) / SIZE) == 1) return true;
+			if (black[pos + SIZE] && calcLiberty((pos + SIZE) % SIZE, (pos + SIZE) / SIZE) == 1) return true;
+		}
+		else if (pos == SIZE - 1)
+		{
+			if (black[pos - 1] && calcLiberty((pos - 1) % SIZE, (pos - 1) / SIZE) == 1) return true;
+			if (black[pos + SIZE] && calcLiberty((pos + SIZE) % SIZE, (pos + SIZE) / SIZE) == 1) return true;
+		}
+		else if (pos == SIZE*SIZE - SIZE)
+		{
+			if (black[pos + 1] && calcLiberty((pos + 1) % SIZE, (pos + 1) / SIZE) == 1) return true;
+			if (black[pos - SIZE] && calcLiberty((pos - SIZE) % SIZE, (pos - SIZE) / SIZE) == 1) return true;
+		}
+		else if (pos == SIZE*SIZE - 1)
+		{
+			if (black[pos - 1] && calcLiberty((pos - 1) % SIZE, (pos - 1) / SIZE) == 1) return true;
+			if (black[pos - SIZE] && calcLiberty((pos - SIZE) % SIZE, (pos - SIZE) / SIZE) == 1) return true;
+		}
+		else if (pos > 0 && pos < SIZE - 1)
+		{
+			if (black[pos + 1] && calcLiberty((pos + 1) % SIZE, (pos + 1) / SIZE) == 1) return true;
+			if (black[pos - 1] && calcLiberty((pos - 1) % SIZE, (pos - 1) / SIZE) == 1) return true;
+			if (black[pos + SIZE] && calcLiberty((pos + SIZE) % SIZE, (pos + SIZE) / SIZE) == 1) return true;
+		}
+		else if (pos>SIZE*SIZE - SIZE && pos < SIZE*SIZE - 1)
+		{
+			if (black[pos + 1] && calcLiberty((pos + 1) % SIZE, (pos + 1) / SIZE) == 1) return true;
+			if (black[pos - 1] && calcLiberty((pos - 1) % SIZE, (pos - 1) / SIZE) == 1) return true;
+			if (black[pos - SIZE] && calcLiberty((pos - SIZE) % SIZE, (pos - SIZE) / SIZE) == 1) return true;
+		}
+		else if (pos%SIZE == 0 && pos / SIZE>0 && pos / SIZE < SIZE - 1)
+		{
+			if (black[pos + 1] && calcLiberty((pos + 1) % SIZE, (pos + 1) / SIZE) == 1) return true;
+			if (black[pos - SIZE] && calcLiberty((pos - SIZE) % SIZE, (pos - SIZE) / SIZE) == 1) return true;
+			if (black[pos + SIZE] && calcLiberty((pos + SIZE) % SIZE, (pos + SIZE) / SIZE) == 1) return true;
+		}
+		else if (pos%SIZE == SIZE - 1 && pos / SIZE>0 && pos / SIZE < SIZE - 1)
+		{
+			if (black[pos - 1] && calcLiberty((pos - 1) % SIZE, (pos - 1) / SIZE) == 1) return true;
+			if (black[pos - SIZE] && calcLiberty((pos - SIZE) % SIZE, (pos - SIZE) / SIZE) == 1) return true;
+			if (black[pos + SIZE] && calcLiberty((pos + SIZE) % SIZE, (pos + SIZE) / SIZE) == 1) return true;
+		}
+		else
+		{
+			if (black[pos + 1] && calcLiberty((pos + 1) % SIZE, (pos + 1) / SIZE) == 1) return true;
+			if (black[pos - 1] && calcLiberty((pos - 1) % SIZE, (pos - 1) / SIZE) == 1) return true;
+			if (black[pos - SIZE] && calcLiberty((pos - SIZE) % SIZE, (pos - SIZE) / SIZE) == 1) return true;
+			if (black[pos + SIZE] && calcLiberty((pos + SIZE) % SIZE, (pos + SIZE) / SIZE) == 1) return true;
+		}
+		white.set(pos);
+		int liberty = calcLiberty(pos%SIZE, pos / SIZE);
+		white.reset(pos);
+		return liberty != 0;
+	}
+	return false;
 }
 
 //黑白双方随机下棋，返回这盘随机下的棋最终的结果，正为黑
@@ -927,4 +1063,131 @@ int board::autoRun()
 	//showGame();
 	//show();
 	return b - w;
+	//return 0;
+}
+
+void board::aiMoveMonteCarlo(int &pos, int lastPos, int rivalPos)
+{
+	if (rivalPos == -1)
+	{
+		aiMoveGreedy2(pos, lastPos, rivalPos);
+		return;
+	}
+	int bScore = 0;
+	int wScore = 0;
+	int b = 0;
+	int w = 0;
+	calcGame(b, w, bScore, wScore, false);
+	std::bitset<SIZE*SIZE> storeBlack = copy(black);
+	std::bitset<SIZE*SIZE> storeWhite = copy(white);
+	int storeStep = step;
+	uctNode* root = new uctNode(rivalPos, color, NULL);
+	int games = 0;
+	getAvailableMonteCarloMove(root, games);	
+	while (games < MAXGAMES)
+	{
+		uctNode *tmp = root;
+		while (tmp->play>1 && tmp->nextMove.size() > 0 && tmp->opened)
+		{
+			//printf("%d %d result:%d play:%d\n",tmp->pos%SIZE, tmp->pos/SIZE, tmp->playResult, tmp->play);
+			if (tmp != root)
+			{
+				if (!tmp->color)
+				{
+					placeBlack(tmp->pos%SIZE, tmp->pos / SIZE);
+				}
+				else
+				{
+					placeWhite(tmp->pos%SIZE, tmp->pos / SIZE);
+				}
+			}
+			sort(tmp->nextMove.begin(), tmp->nextMove.end(), cmpLess);
+			if (!tmp->color)
+			{
+				tmp = tmp->nextMove[tmp->nextMove.size() - 1];
+			}
+			else
+			{
+				tmp = tmp->nextMove[0];
+			}
+		}
+		//printf("x=%d y=%d\n", tmp->pos%SIZE, tmp->pos / SIZE);
+		if (tmp->opened && tmp->nextMove.size() == 0)
+		{
+			//printf("ddddd\n");
+			black = copy(storeBlack);
+			white = copy(storeWhite);
+			step = storeStep;
+			break;
+		}
+		getAvailableMonteCarloMove(tmp, games);
+		black = copy(storeBlack);
+		white = copy(storeWhite);
+		step = storeStep;
+	}
+	sort(root->nextMove.begin(), root->nextMove.end(), cmpLess);
+	if (!color)
+	{
+		uctNode *tmpNode = root->nextMove[root->nextMove.size() - 1];
+		if (tmpNode->playResult / tmpNode->play > b - w)
+		{
+			pos = tmpNode->pos;
+		}
+		else
+		{
+			pos = -1;
+		}
+	}
+	else
+	{
+		uctNode *tmpNode = root->nextMove[0];
+		if (tmpNode->playResult / tmpNode->play < b - w)
+		{
+			pos = tmpNode->pos;
+		}
+		else
+		{
+			pos = -1;
+		}
+	}
+	delete root;
+	if (pos == -1)
+	{
+		aiMoveGreedy2(pos, lastPos, rivalPos);
+	}
+}
+
+//寻找蒙特卡洛方法的可选点，thisColor为当前选择可下的棋子的颜色，与上一颜色相反
+void board::getAvailableMonteCarloMove(uctNode *root, int &games)
+{
+	root->opened = true;
+	int x = root->pos%SIZE;
+	int y = root->pos / SIZE;
+	std::bitset<SIZE*SIZE> storeBlack = copy(black);
+	std::bitset<SIZE*SIZE> storeWhite = copy(white);
+	int storeStep = step;
+	for (int i = max(0, x - MONTECARLORANGE); i < min(SIZE, x + MONTECARLORANGE); ++i)
+	{
+		for (int j = max(0, y - MONTECARLORANGE); j < min(SIZE, y + MONTECARLORANGE); ++j)
+		{
+			int p = i + j*SIZE;
+			if (available(p, !root->color, root->pos))
+			{
+				//printf("x=%d y=%d i=%d j=%d\n",x,y,i,j);
+				uctNode *next = new uctNode(p, !root->color, root);
+				root->addPos(next);
+				if (root->color)
+					placeBlack(p%SIZE, p / SIZE);
+				else
+					placeWhite(p%SIZE, p / SIZE);
+				++step;
+				int r = autoRun();
+				++games;
+				next->result(r);
+				black = copy(storeBlack);
+				white = copy(storeWhite);
+				step = storeStep;
+			}
+		}
+	}
 }

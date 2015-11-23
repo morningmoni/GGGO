@@ -7,12 +7,12 @@
 #include "stdlib.h"
 #include "string.h"
 #include "time.h"
-
+/*
 int _tmain(int argc, _TCHAR* argv[])
 {
 	board *bb = NULL;
 	int t1 = 0, t2 = 0, t = 0;
-	int iteratetimes = 100;
+	int iteratetimes = 1000;
 	t1 = time(NULL);
 	for (int i = 0; i < iteratetimes; ++i)
 	{
@@ -32,9 +32,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	bb->show();
 	system("pause");
 	return 0;
-}
+}*/
 
-/*
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	printf("命令如下:\nnew black-以黑棋开局\nnew white以白棋开局\nplace x y-在x,y位置放棋子,x为横坐标,从左到右依次变大,y为纵坐标,从上当下依次变大,从0开始\n");
@@ -73,7 +73,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					}
 					bb = new board(false);
 					int pos = -1;
-					bb->aiMove(pos, -1);
+					bb->aiMove(pos, -1, -1);
 					if (pos != -1)
 					{
 						bb->placeBlack(pos%SIZE, pos / SIZE);
@@ -115,7 +115,10 @@ int _tmain(int argc, _TCHAR* argv[])
 							continue;
 						}
 						int pos = -1;
-						bb->aiMove(pos, x + y*SIZE);
+						if (flag)
+							bb->aiMove(pos, bb->lastPosition, x + y*SIZE);
+						else
+							bb->aiMove(pos, bb->lastPosition, -1);
 						if (pos != -1)
 						{
 							bb->placeWhite(pos%SIZE, pos / SIZE);
@@ -135,7 +138,10 @@ int _tmain(int argc, _TCHAR* argv[])
 							continue;
 						}
 						int pos = -1;
-						bb->aiMove(pos, x + y*SIZE);
+						if (flag)
+							bb->aiMove(pos, bb->lastPosition, x + y*SIZE);
+						else
+							bb->aiMove(pos, bb->lastPosition, -1);
 						if (pos != -1)
 						{
 							bb->placeBlack(pos%SIZE, pos / SIZE);
@@ -153,7 +159,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					if (bb->checkColor())
 					{
 						int pos = -1;
-						bb->aiMove(pos, -1);
+						bb->aiMove(pos, -1, -1);
 						if (pos != -1)
 						{
 							bb->placeWhite(pos%SIZE, pos / SIZE);
@@ -167,7 +173,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					else
 					{
 						int pos = -1;
-						bb->aiMove(pos, -1);
+						bb->aiMove(pos, -1, -1);
 						if (pos != -1)
 						{
 							bb->placeBlack(pos%SIZE, pos / SIZE);
@@ -202,4 +208,4 @@ int _tmain(int argc, _TCHAR* argv[])
 	system("pause");
 	return 0;
 }
-*/
+
