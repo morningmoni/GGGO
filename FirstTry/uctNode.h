@@ -12,6 +12,7 @@ public:
 	bool color;
 	int pos;
 	bool opened;
+	float score;
 	std::vector<uctNode*> nextMove;
 	uctNode* lastMove;
 	uctNode(int p, bool c, uctNode *last);

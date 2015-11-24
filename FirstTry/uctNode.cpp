@@ -8,6 +8,7 @@ uctNode::uctNode(int p, bool c, uctNode* last)
 	playResult = 0;
 	pos = p;
 	color = c;
+	score = 0.0;
 	lastMove = last;
 	opened = false;
 }

@@ -9,6 +9,7 @@
 #include "uctNode.h"
 #include "vector"
 #include "algorithm"
+#include "cmath"
 
 
 bool board::checkColor()
@@ -131,7 +132,7 @@ void board::aiMove(int &pos, int lastPos, int rivalPos)
 	}
 	else
 	{
-		aiMoveMinMax(pos, lastPos, rivalPos);
+		aiMoveMonteCarlo(pos, lastPos, rivalPos);
 	}*/
 	aiMoveMonteCarlo(pos, lastPos, rivalPos);
 	lastPosition = pos;
@@ -1101,6 +1102,11 @@ void board::aiMoveMonteCarlo(int &pos, int lastPos, int rivalPos)
 					placeWhite(tmp->pos%SIZE, tmp->pos / SIZE);
 				}
 			}
+			for (int ii = 0; ii < tmp->nextMove.size(); ++ii)
+			{
+				uctNode *tt = tmp->nextMove[ii];
+				tt->score = (tt->playResult + 0.0) / tt->play + sqrtf(2*log(games)/tt->play);
+			}
 			sort(tmp->nextMove.begin(), tmp->nextMove.end(), cmpLess);
 			if (!tmp->color)
 			{
@@ -1124,6 +1130,11 @@ void board::aiMoveMonteCarlo(int &pos, int lastPos, int rivalPos)
 		black = copy(storeBlack);
 		white = copy(storeWhite);
 		step = storeStep;
+	}
+	for (int ii = 0; ii < root->nextMove.size(); ++ii)
+	{
+		uctNode *tt = root->nextMove[ii];
+		tt->score = (tt->playResult + 0.0) / tt->play + sqrtf(2 * log(games) / tt->play);
 	}
 	sort(root->nextMove.begin(), root->nextMove.end(), cmpLess);
 	if (!color)

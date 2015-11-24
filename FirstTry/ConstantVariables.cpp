@@ -3,9 +3,9 @@
 
 bool cmpLess(const uctNode* a, const uctNode *b)
 {
-	return a->playResult*b->play < b->playResult*a->play;
+	return a->score < b->score;
 }
 bool cmpMore(const uctNode* a, const uctNode *b)
 {
-	return a->playResult*b->play > b->playResult*a->play;
+	return a->score > b->score;
 }
