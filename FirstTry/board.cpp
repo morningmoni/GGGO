@@ -119,6 +119,7 @@ void board::aiMoveGreedy2(int &pos, int lastPos, int rivalPos)
 	pos = storePos;
 }
 
+// 一维的位置序号
 void board::aiMove(int &pos, int lastPos, int rivalPos)
 {
 	++step;
@@ -171,6 +172,7 @@ int board::max(int a, int b)
 	return a>b ? a : b;
 }
 
+// distance divided by 2 for d times
 int board::calcDisImpact(int d)
 {
 	int t = IMPACT;
@@ -182,6 +184,10 @@ int board::calcDisImpact(int d)
 }
 
 //计算当前盘面上黑白势力
+//b,w表示当前棋盘上的黑白势力子数
+//bScore，wScore表示当前棋盘上的黑白势力数
+//show=true时，在屏幕上输出黑白势力
+//extra储存impact, 大于EDGE时才考虑
 bool board::calcGame(int &b, int &w, int &bScore, int &wScore, bool show)
 {
 	int **extra = new int*[SIZE];
@@ -1063,7 +1069,7 @@ int board::autoRun()
 	calcGame(b, w, bScore, wScore, false);
 	//showGame();
 	//show();
-	return b - w;
+	return b - w; //b - w 大于0即黑子多
 	//return 0;
 }
 
@@ -1083,7 +1089,7 @@ void board::aiMoveMonteCarlo(int &pos, int lastPos, int rivalPos)
 	std::bitset<SIZE*SIZE> storeWhite = copy(white);
 	int storeStep = step;
 	uctNode* root = new uctNode(rivalPos, color, NULL);
-	int games = 0;
+	int games = 0; //number of playouts
 	getAvailableMonteCarloMove(root, games);	
 	while (games < MAXGAMES)
 	{
@@ -1106,7 +1112,6 @@ void board::aiMoveMonteCarlo(int &pos, int lastPos, int rivalPos)
 			{
 				uctNode *tt = tmp->nextMove[ii];
 				tt->score = (tt->playResult + 0.0) / tt->play + sqrtf(2*log(games)/tt->play);
-			}
 			sort(tmp->nextMove.begin(), tmp->nextMove.end(), cmpLess);
 			if (!tmp->color)
 			{
@@ -1149,7 +1154,7 @@ void board::aiMoveMonteCarlo(int &pos, int lastPos, int rivalPos)
 			pos = -1;
 		}
 	}
-	else
+	else  
 	{
 		uctNode *tmpNode = root->nextMove[0];
 		if (tmpNode->playResult / tmpNode->play < b - w)
@@ -1169,6 +1174,7 @@ void board::aiMoveMonteCarlo(int &pos, int lastPos, int rivalPos)
 }
 
 //寻找蒙特卡洛方法的可选点，thisColor为当前选择可下的棋子的颜色，与上一颜色相反
+//MONTECARLORANGE 如何选取
 void board::getAvailableMonteCarloMove(uctNode *root, int &games)
 {
 	root->opened = true;
