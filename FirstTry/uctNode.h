@@ -1,21 +1,20 @@
 #pragma once
 
-#include "ConstantVariables.h"
 #include "vector"
 
 class uctNode{
 public:
-	//Õâ¸ö·ÖÖ§ÏÂ×Ü¹²ÏÂÁË¶àÉÙÅÌ
+	//è¿™ä¸ªåˆ†æ”¯ä¸‹æ€»å…±ä¸‹äº†å¤šå°‘ç›˜
 	int play;
-	//Õâ¸ö·ÖÖ§ÏÂºÚ-°×Îª¶àÉÙ×Ó
+	//è¿™ä¸ªåˆ†æ”¯ä¸‹é»‘-ç™½ä¸ºå¤šå°‘å­
 	int playResult;
-	bool color;
+	int color;
 	int pos;
 	bool opened;
 	float score;
 	std::vector<uctNode*> nextMove;
 	uctNode* lastMove;
-	uctNode(int p, bool c, uctNode *last);
+	uctNode(int p, int c, uctNode *last);
 	~uctNode();
 	void addPos(uctNode* p);
 	void result(int r);

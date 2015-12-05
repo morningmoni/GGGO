@@ -1,8 +1,6 @@
-#include "board.h"
 #include "uctNode.h"
-#include "ConstantVariables.h"
 
-uctNode::uctNode(int p, bool c, uctNode* last)
+uctNode::uctNode(int p, int c, uctNode* last)
 {
 	play = 0;
 	playResult = 0;
