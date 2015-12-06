@@ -78,6 +78,7 @@ extern int step;
 #define MAXGAMES 5000
 #define MONTECARLORANGE 13
 #define CLEARTIME 10
+#define PRECHECKRANGE 2
 
 
 

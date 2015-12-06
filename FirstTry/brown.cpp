@@ -1551,7 +1551,7 @@ int checkLiberty(int i, int j)
 
 void aiMovePreCheck(int *pos, int color, int *moves, int num_moves)
 {
-	int ai, aj;
+	/*int ai, aj;
 	for (int k = 0; k < 4; ++k)
 	{
 		ai = rivalMovei + deltai[k];
@@ -1564,6 +1564,29 @@ void aiMovePreCheck(int *pos, int color, int *moves, int num_moves)
 				*pos = ppos;
 				return;
 			}				
+		}
+	}
+	*/
+	if (rivalMovei == -1 || rivalMovej == -1)
+	{
+		*pos = -1;
+		return;
+	}
+	for (int i = max(0, rivalMovei - PRECHECKRANGE); i <= min(board_size - 1, rivalMovei + PRECHECKRANGE); ++i)
+	{
+		for (int j = max(0, rivalMovej - PRECHECKRANGE); j <= min(board_size - 1, rivalMovej + PRECHECKRANGE); ++j)
+		{
+			if (!on_board(i, j) || get_board(i, j) != OTHER_COLOR(color))
+				continue;
+			if (checkLiberty(i, j) == 1)
+			{
+				int ppos = findALiberty(i, j);
+				if (available(I(ppos), J(ppos), color))
+				{
+					*pos = ppos;
+					return;
+				}
+			}
 		}
 	}
 	*pos = -1;
@@ -1599,7 +1622,7 @@ void aiMove(int *pos, int color,int *moves,int num_moves)
 {
 	//aiMoveGreedy2(pos,color,moves,num_moves);
 	//aiMoveMonteCarlo(pos,color,moves,num_moves);
-	//aiMovePreCheck(pos, color, moves, num_moves);
-	//if (*pos==-1)
+	aiMovePreCheck(pos, color, moves, num_moves);
+	if (*pos==-1)
 		uctSearch(pos,color,moves,num_moves);
 }
