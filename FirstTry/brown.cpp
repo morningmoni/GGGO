@@ -174,10 +174,10 @@ legal_move(int i, int j, int color)
    * check the color of at least one neighbor.
    */
   if (i == ko_i && j == ko_j
-      && ((on_board(i - 1, j) && get_board(i - 1, j) == other)
-	  && (on_board(i + 1, j) && get_board(i + 1, j) == other)
-    && (on_board(i, j - 1) && get_board(i, j - 1) == other)
-    && (on_board(i, j + 1) && get_board(i, j + 1) == other) ))
+	  && (((on_board(i - 1, j) && get_board(i - 1, j) == other) || !on_board(i - 1, j))
+	  && ((on_board(i + 1, j) && get_board(i + 1, j) == other) || !on_board(i + 1, j))
+	  && ((on_board(i, j - 1) && get_board(i, j - 1) == other) || !on_board(i, j - 1))
+    && ((on_board(i, j + 1) && get_board(i, j + 1) == other) || !on_board(i, j + 1) )) )
     return 0;
 
   return 1;
