@@ -75,7 +75,7 @@ extern int step;
 #define TRYTIME 10
 #define MAXSTEP 60
 #define TIMELIMIT 2
-#define MAXGAMES 3500
+#define MAXGAMES 5000
 #define MONTECARLORANGE 13
 #define CLEARTIME 10
 
@@ -134,3 +134,5 @@ uctNode* treePolicy(uctNode* v);
 uctNode* bestchild(uctNode* curNode, int c);
 uctNode* expand(uctNode* curNode, int* moves, int num_moves);
 int generate_legal_moves(int* moves, int color);
+
+int checkLiberty(int i, int j);

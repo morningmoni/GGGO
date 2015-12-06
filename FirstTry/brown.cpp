@@ -49,7 +49,7 @@ using namespace std;
  * discretion of the engine. We make the uncommon choices of 6x6 board
  * and komi -3.14.
  */
-int board_size = 6;
+int board_size = 13;
 float komi = -3.14;
 
 /* Board represented by a 1D array. The first board_size*board_size
@@ -285,7 +285,7 @@ void play_move(int i, int j, int color)
 {
   if (!on_board(i,j) || get_board(i,j)!=EMPTY)
   {
-    mylog("play move error");
+    //mylog("play move error");
     return;
   }
   int pos = POS(i, j);
@@ -387,29 +387,39 @@ void generate_move(int *i, int *j, int color)
 {
   int moves[MAX_BOARD * MAX_BOARD];
   int num_moves = 0;
-  int move;
   int ai, aj;
   int k;
 
   memset(moves, 0, sizeof(moves));
-  for (ai = 0; ai < board_size; ai++){
-    for (aj = 0; aj < board_size; aj++) {
+  for (ai = 0; ai < board_size; ai++)
+  {
+    for (aj = 0; aj < board_size; aj++)
+	{
       /* Consider moving at (ai, aj) if it is legal and not suicide. */
-      if (legal_move(ai, aj, color) && !suicide(ai, aj, color)) {
+      if (legal_move(ai, aj, color) && !suicide(ai, aj, color))
+	  {
       	/* Further require the move not to be suicide for the opponent... */
       	if (!suicide(ai, aj, OTHER_COLOR(color)))
 	        moves[num_moves++] = POS(ai, aj);
-	      else {
+	      else
+		  {
     	  /* ...however, if the move captures at least one stone,
                * consider it anyway.
     	   */
-      	  for (k = 0; k < 4; k++) {
+      	  for (k = 0; k < 4; k++)
+		  {
       	    int bi = ai + deltai[k];
       	    int bj = aj + deltaj[k];
-      	    if (on_board(bi, bj) && get_board(bi, bj) == OTHER_COLOR(color)) {
+      	    if (on_board(bi, bj) && get_board(bi, bj) == OTHER_COLOR(color))
+			{
       	      moves[num_moves++] = POS(ai, aj);
       	      break;
       	    }
+			if (get_board(bi, bj) && get_board(bi, bj) == color && checkLiberty(bi, bj) == 1)
+			{
+				moves[num_moves++] = POS(ai, aj);
+				break;
+			}
       	  }
 	      }
       }
@@ -1018,6 +1028,10 @@ bool available(int i, int j, int color)
         if (on_board(bi, bj) && get_board(bi, bj) == OTHER_COLOR(color)) {
           return true;
         }
+		if (get_board(bi, bj) && get_board(bi, bj) == color && checkLiberty(bi, bj) == 1)
+		{
+			return true;
+		}
       }
     }
   }
@@ -1040,51 +1054,17 @@ void getAvailableMonteCarloMove(uctNode *root, int *games)
   int storeko_i = ko_i;
   int storeko_j = ko_j;
 
-
-  /*int movesMonteCarlo[MAX_BOARD * MAX_BOARD];
-  int ai, aj;
-  int k;
-  int num_movesMonteCarlo = 0;
-  memset(movesMonteCarlo, 0, sizeof(movesMonteCarlo));
-  for (ai = 0; ai < board_size; ai++){
-    for (aj = 0; aj < board_size; aj++) {
-      // Consider moving at (ai, aj) if it is legal and not suicide.
-      if (get_board(i,j) != EMPTY) continue;
-      if (legal_move(ai, aj, OTHER_COLOR(root->color)) && !suicide(ai, aj, OTHER_COLOR(root->color))) {
-        // Further require the move not to be suicide for the opponent...
-        if (!suicide(ai, aj, root->color))
-          movesMonteCarlo[num_movesMonteCarlo++] = POS(ai, aj);
-        else {
-        // ...however, if the move captures at least one stone,consider it anyway.
-          for (k = 0; k < 4; k++) {
-            int bi = ai + deltai[k];
-            int bj = aj + deltaj[k];
-            if (on_board(bi, bj) && get_board(bi, bj) == root->color) {
-              movesMonteCarlo[num_movesMonteCarlo++] = POS(ai, aj);
-              break;
-            }
-          }
-        }
-      }
-    }
-  }*/
   for (int i = max(0, x - MONTECARLORANGE); i < min(board_size, x + MONTECARLORANGE); ++i)
   {
     for (int j = max(0, y - MONTECARLORANGE); j < min(board_size, y + MONTECARLORANGE); ++j)
-    //for (int kk=0; kk<num_movesMonteCarlo; ++kk)
     {
-      //int i = I(movesMonteCarlo[kk]);
-      //int j = J(movesMonteCarlo[kk]);
       if (available(i,j,OTHER_COLOR(root->color)))
       {
         uctNode *next = new uctNode(POS(i,j), OTHER_COLOR(root->color), root);
         root->addPos(next);
-        //mylog("playstart");
         play_move(i, j, OTHER_COLOR(root->color));
-        //mylog("playmiddle");
         ++step;
         int r = autoRun(root->color);
-        //mylog("playend");
         ++(*games);
         next->result(r);
         for(int ii = 0;ii<board_size*board_size;++ii)
@@ -1109,7 +1089,6 @@ void aiMoveMonteCarlo(int *pos, int color,int *moves,int num_moves)
     aiMoveGreedy2(pos,color,moves,num_moves);
     return;
   }
-
   srand(time(NULL));
   int bScore = 0;
   int wScore = 0;
@@ -1342,28 +1321,37 @@ void show_game()
 //Start here
 int generate_legal_moves(int* moves, int color)
 {
-	moves = new int[MAX_BOARD * MAX_BOARD];
 	int num_moves = 0;
-	int move;
 	int ai, aj;
 	int k;
 
 	memset(moves, 0, sizeof(moves));
-	for (ai = 0; ai < board_size; ai++) {
-		for (aj = 0; aj < board_size; aj++) {
+	for (ai = 0; ai < board_size; ai++)
+	{
+		for (aj = 0; aj < board_size; aj++)
+		{
 			/* Consider moving at (ai, aj) if it is legal and not suicide. */
-			if (legal_move(ai, aj, color) && !suicide(ai, aj, color)) {
+			if (legal_move(ai, aj, color) && !suicide(ai, aj, color))
+			{
 				/* Further require the move not to be suicide for the opponent... */
 				if (!suicide(ai, aj, OTHER_COLOR(color)))
 					moves[num_moves++] = POS(ai, aj);
-				else {
+				else
+				{
 					/* ...however, if the move captures at least one stone,
 					* consider it anyway.
 					*/
-					for (k = 0; k < 4; k++) {
+					for (k = 0; k < 4; k++)
+					{
 						int bi = ai + deltai[k];
 						int bj = aj + deltaj[k];
-						if (on_board(bi, bj) && get_board(bi, bj) == OTHER_COLOR(color)) {
+						if (on_board(bi, bj) && get_board(bi, bj) == OTHER_COLOR(color))
+						{
+							moves[num_moves++] = POS(ai, aj);
+							break;
+						}
+						if (get_board(bi, bj) && get_board(bi, bj) == color && checkLiberty(bi, bj) == 1)
+						{
 							moves[num_moves++] = POS(ai, aj);
 							break;
 						}
@@ -1399,22 +1387,20 @@ uctNode* expand(uctNode* curNode, int* moves, int num_moves)
 	return NULL; //indicates error
 }
 
-//这里无论白棋黑棋都应该找最好的点吧？感觉之前写的不对。这样才模拟真实情况
 uctNode* bestchild(uctNode* curNode, int c, int games)
 {
-	//TODO 为他的所有子节点计算score, c为第二项的系数
 	calScore(curNode, games);
 	sort(curNode->nextMove.begin(), curNode->nextMove.end(), cmpLess);
-  if (curNode->color==BLACK)
-	  return curNode->nextMove[0];
-  else
-    return curNode->nextMove[curNode->nextMove.size()-1];
+	if (curNode->color==BLACK)
+		return curNode->nextMove[0];
+	else
+		return curNode->nextMove[curNode->nextMove.size()-1];
 }
 
 uctNode* treePolicy(uctNode* v, int games)
 {
 	uctNode* curNode = v;
-	int* moves; //available moves
+	int* moves = new int[MAX_BOARD * MAX_BOARD]; //available moves
 	int num_moves;	//available moves_count
 	while (curNode->nextMove.size() > 0 || !curNode->lastMove) //while not leaf node, or is root
 	{
@@ -1438,11 +1424,11 @@ int defaultPolicy(int color)
 
 void backup(uctNode* v, int reward)
 {
-	v->result(reward); //是这个吗
+	v->result(reward);
 }
 void uctSearch(int *pos, int color, int *moves, int num_moves)
 {
-	//TODO 没有恢复棋盘
+	srand(time(NULL));
 	int * store_board = new int[board_size*board_size];
 	int * store_next_stone = new int[board_size*board_size];
 	for (int i = 0; i<board_size*board_size; ++i)
@@ -1455,27 +1441,26 @@ void uctSearch(int *pos, int color, int *moves, int num_moves)
 	int storeko_j = ko_j;
 
 	int games = 0;
-	uctNode* root = new uctNode(POS(rivalMovei, rivalMovej), OTHER_COLOR(color), NULL);//这里我没太看懂直接copy 的
+	uctNode* root = new uctNode(POS(rivalMovei, rivalMovej), OTHER_COLOR(color), NULL);
 	int reward = 0;
 
 	while (games < MAXGAMES)
 	{
-		//关于color的可能不太对，注意一下
 		uctNode* chosenNode = treePolicy(root,games);
-    if (!chosenNode)
-      break;
-    play_move(I(chosenNode->pos), J(chosenNode->pos), chosenNode->color);
+		if (!chosenNode)
+			break;
+		play_move(I(chosenNode->pos), J(chosenNode->pos), chosenNode->color);
 		reward = defaultPolicy(OTHER_COLOR(chosenNode->color));
 		backup(chosenNode, reward);
 		++games;
-    for(int ii = 0;ii<board_size*board_size;++ii)
-    {
-      board[ii] = store_board[ii];
-      next_stone[ii] = store_next_stone[ii];
-    }
-    step = storeStep;
-    ko_i = storeko_i;
-    ko_j = storeko_j;
+		for(int ii = 0;ii<board_size*board_size;++ii)
+		{
+			board[ii] = store_board[ii];
+			next_stone[ii] = store_next_stone[ii];
+		}
+		step = storeStep;
+		ko_i = storeko_i;
+		ko_j = storeko_j;
 	}
 
 	uctNode* resNode = bestchild(root, 0,games); //final result
@@ -1495,8 +1480,36 @@ void calScore(uctNode* tmp, int games)
   for (int ii = 0; ii < tmp->nextMove.size(); ++ii)
   {
     uctNode *tt = tmp->nextMove[ii];
-    tt->score = (tt->playResult + 0.0) / tt->play + sqrtf(2*log(games)/tt->play);
+    tt->score = (tt->playResult + 0.0) / tt->play + sqrt(2*log(games)/tt->play);
   }
+}
+
+int checkLiberty(int i, int j)
+{
+	if (!on_board(i, j))
+		return -1;
+	int color = get_board(i, j);
+	if (color == EMPTY)
+		return -1;
+	int other = OTHER_COLOR(color);
+	int ai;
+	int aj;
+	int pos = POS(i, j);
+	int pos1 = pos;
+	int ans = 0;
+	do{
+		ai = I(pos1);
+		aj = J(pos1);
+		for (int k = 0; k < 4; ++k)
+		{
+			int bi = ai + deltai[k];
+			int bj = aj + deltaj[k];
+			if (on_board(bi, bj) && get_board(bi, bj) == other)
+				++ans;
+		}
+		pos1 = next_stone[pos1];
+	} while (pos1 != pos);
+	return ans;
 }
 
 void aiMove(int *pos, int color,int *moves,int num_moves)
