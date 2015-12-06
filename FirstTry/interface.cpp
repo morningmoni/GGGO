@@ -96,7 +96,12 @@ static struct gtp_command commands[] = {
 int _tmain(int argc, char** argv)
 {
 	unsigned int random_seed = 1;
-
+	ofstream outfile1("loglog.txt");
+	time_t m_time = time(NULL);
+	tm* t = localtime(&m_time);
+	outfile1 << "start at "<<t->tm_year+1900<<"-"<<t->tm_mon+1<<"-"<<t->tm_mday<<"-"<<t->tm_hour<<"-"<<t->tm_min<<"-"<<t->tm_sec;
+	outfile1 << "\r\n";
+	outfile1.close();
 	/* Optionally a random seed can be passed as an argument to the program. */
 	if (argc > 1)
 		sscanf(argv[1], "%u", &random_seed);

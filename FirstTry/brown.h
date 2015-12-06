@@ -104,6 +104,7 @@ void calcGame(int *b, int *w, int *bScore, int *wScore);
 int checkDistance(int x0, int y0, int x1, int y1);
 void aiMoveGreedy2(int *pos, int color,int *moves,int num_moves);
 void aiMoveMonteCarlo(int *pos, int color,int *moves,int num_moves);
+void aiMovePreCheck(int *pos, int color, int *moves, int num_moves);
 void aiMove(int *pos, int color,int *moves,int num_moves);
 
 int autoRun(int color);
@@ -126,7 +127,7 @@ void show_game();
  * c-basic-offset: 2
  * End:
  */
-void calScore(uctNode* tmp, int games);
+void calScore(uctNode* tmp, int c);
 void uctSearch(int *pos, int color, int *moves, int num_moves);
 void backup(uctNode* v, int reward);
 int defaultPolicy(int color);
@@ -136,3 +137,4 @@ uctNode* expand(uctNode* curNode, int* moves, int num_moves);
 int generate_legal_moves(int* moves, int color);
 
 int checkLiberty(int i, int j);
+int findALiberty(int i, int j);

@@ -1387,9 +1387,9 @@ uctNode* expand(uctNode* curNode, int* moves, int num_moves)
 	return NULL; //indicates error
 }
 
-uctNode* bestchild(uctNode* curNode, int c, int games)
+uctNode* bestchild(uctNode* curNode, int c)
 {
-	calScore(curNode, games);
+	calScore(curNode, c);
 	sort(curNode->nextMove.begin(), curNode->nextMove.end(), cmpLess);
 	if (curNode->color==BLACK)
 		return curNode->nextMove[0];
@@ -1416,7 +1416,7 @@ uctNode* treePolicy(uctNode* v, int games)
 			return tmp;
 		}			
 		else
-			curNode = bestchild(curNode, 1, games);
+			curNode = bestchild(curNode, 1);
 	}
 	delete[]moves;
 	return curNode;
@@ -1474,7 +1474,7 @@ void uctSearch(int *pos, int color, int *moves, int num_moves)
 	}
 	if (root->nextMove.size()>0)
 	{
-		uctNode* resNode = bestchild(root, 0, games); //final result
+		uctNode* resNode = bestchild(root, 0); //final result
 		*pos = resNode->pos;
 	}
 	else
@@ -1492,16 +1492,34 @@ void uctSearch(int *pos, int color, int *moves, int num_moves)
   }
 }
 
-void calScore(uctNode* tmp, int games)
+void calScore(uctNode* tmp, int c)
 {
-  for (int ii = 0; ii < tmp->nextMove.size(); ++ii)
-  {
-    uctNode *tt = tmp->nextMove[ii];
-	if (tt->play == 0)
-		tt->score = 0;
+	if (tmp->color == BLACK)
+	{
+		for (int ii = 0; ii < tmp->nextMove.size(); ++ii)
+		{
+			uctNode *tt = tmp->nextMove[ii];
+			if (tt->play == 0)
+			{
+				tt->score = 0;
+				continue;
+			}
+			tt->score = (tt->playResult + 0.0) / tt->play - c*sqrt(2 * log(tmp->play) / tt->play);
+		}
+	}
 	else
-		tt->score = (tt->playResult + 0.0) / tt->play + sqrt(2*log(games)/tt->play);
-  }
+	{
+		for (int ii = 0; ii < tmp->nextMove.size(); ++ii)
+		{
+			uctNode *tt = tmp->nextMove[ii];
+			if (tt->play == 0)
+			{
+				tt->score = 0;
+				continue;
+			}
+			tt->score = (tt->playResult + 0.0) / tt->play + c*sqrt(2 * log(tmp->play) / tt->play);
+		}
+	}
 }
 
 int checkLiberty(int i, int j)
@@ -1511,7 +1529,6 @@ int checkLiberty(int i, int j)
 	int color = get_board(i, j);
 	if (color == EMPTY)
 		return -1;
-	int other = OTHER_COLOR(color);
 	int ai;
 	int aj;
 	int pos = POS(i, j);
@@ -1524,7 +1541,7 @@ int checkLiberty(int i, int j)
 		{
 			int bi = ai + deltai[k];
 			int bj = aj + deltaj[k];
-			if (on_board(bi, bj) && get_board(bi, bj) == other)
+			if (on_board(bi, bj) && get_board(bi, bj) == EMPTY)
 				++ans;
 		}
 		pos1 = next_stone[pos1];
@@ -1532,9 +1549,57 @@ int checkLiberty(int i, int j)
 	return ans;
 }
 
+void aiMovePreCheck(int *pos, int color, int *moves, int num_moves)
+{
+	int ai, aj;
+	for (int k = 0; k < 4; ++k)
+	{
+		ai = rivalMovei + deltai[k];
+		aj = rivalMovej + deltaj[k];
+		if (checkLiberty(ai, aj) == 1)
+		{
+			int ppos = findALiberty(ai, aj);
+			if (available(I(ppos), J(ppos), color))
+			{
+				*pos = ppos;
+				return;
+			}				
+		}
+	}
+	*pos = -1;
+}
+
+int findALiberty(int i, int j)
+{
+	if (!on_board(i, j))
+		return -1;
+	int color = get_board(i, j);
+	if (color == EMPTY)
+		return -1;
+	int ai;
+	int aj;
+	int pos = POS(i, j);
+	int pos1 = pos;
+	do{
+		ai = I(pos1);
+		aj = J(pos1);
+		for (int k = 0; k < 4; ++k)
+		{
+			int bi = ai + deltai[k];
+			int bj = aj + deltaj[k];
+			if (on_board(bi, bj) && get_board(bi, bj) == EMPTY)
+				return POS(bi, bj);
+		}
+		pos1 = next_stone[pos1];
+	} while (pos1 != pos);
+	return -1;
+}
+
 void aiMove(int *pos, int color,int *moves,int num_moves)
 {
-  //aiMoveGreedy2(pos,color,moves,num_moves);
-  //aiMoveMonteCarlo(pos,color,moves,num_moves);
-  uctSearch(pos,color,moves,num_moves);
+	//aiMoveGreedy2(pos,color,moves,num_moves);
+	//aiMoveMonteCarlo(pos,color,moves,num_moves);
+	//aiMovePreCheck(pos, color, moves, num_moves);
+	//if (*pos==-1)
+		uctSearch(pos,color,moves,num_moves);
 }
