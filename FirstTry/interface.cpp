@@ -304,6 +304,12 @@ gtp_play(char *s)
 	if (!gtp_decode_move(s, &color, &i, &j))
 		return gtp_failure("invalid color or coordinate");
 
+	ofstream outfile1("loglog.txt", ios_base::app);
+	outfile1 << "rival  \t";
+	outfile1 << i << " " << j;
+	outfile1 << "\r\n";
+	outfile1.close();
+
 	if (!legal_move(i, j, color))
 		return gtp_failure("illegal move");
 
@@ -335,6 +341,12 @@ gtp_genmove(char *s)
 	//ofstream hehe("logloglog.txt");
 	//hehe<<i<<" "<<j<<endl;
 	//hehe.close();
+
+	ofstream outfile1("loglog.txt", ios_base::app);
+	outfile1 << "self   \t";
+	outfile1 << i << " " << j;
+	outfile1 << "\r\n";
+	outfile1.close();
 
 	if (i == -1 || j == -1)
 	{

@@ -233,13 +233,15 @@ provides_liberty(int ai, int aj, int i, int j, int color)
 }
 
 /* Is a move at (i, j) suicide for color? */
-static int
-suicide(int i, int j, int color)
+static int suicide(int i, int j, int color)
 {
   int k;
   for (k = 0; k < 4; k++)
-    if (provides_liberty(i + deltai[k], j + deltaj[k], i, j, color))
-      return 0;
+  {
+	  if (provides_liberty(i + deltai[k], j + deltaj[k], i, j, color))
+		  return 0;
+  }
+    
 
   return 1;
 }
@@ -385,86 +387,85 @@ void play_move(int i, int j, int color)
 /* Generate a move. */
 void generate_move(int *i, int *j, int color)
 {
-  int moves[MAX_BOARD * MAX_BOARD];
-  int num_moves = 0;
-  int ai, aj;
-  int k;
+	int moves[MAX_BOARD * MAX_BOARD];
+	int num_moves = 0;
+	int ai, aj;
+	int k;
 
-  memset(moves, 0, sizeof(moves));
-  for (ai = 0; ai < board_size; ai++)
-  {
-    for (aj = 0; aj < board_size; aj++)
+	memset(moves, 0, sizeof(moves));
+	for (ai = 0; ai < board_size; ai++)
 	{
-      /* Consider moving at (ai, aj) if it is legal and not suicide. */
-      if (legal_move(ai, aj, color) && !suicide(ai, aj, color))
-	  {
-      	/* Further require the move not to be suicide for the opponent... */
-      	if (!suicide(ai, aj, OTHER_COLOR(color)))
-	        moves[num_moves++] = POS(ai, aj);
-	      else
-		  {
-    	  /* ...however, if the move captures at least one stone,
-               * consider it anyway.
-    	   */
-      	  for (k = 0; k < 4; k++)
-		  {
-      	    int bi = ai + deltai[k];
-      	    int bj = aj + deltaj[k];
-      	    if (on_board(bi, bj) && get_board(bi, bj) == OTHER_COLOR(color))
+		for (aj = 0; aj < board_size; aj++)
+		{
+			/* Consider moving at (ai, aj) if it is legal and not suicide. */
+			if (legal_move(ai, aj, color) && !suicide(ai, aj, color))
 			{
-      	      moves[num_moves++] = POS(ai, aj);
-      	      break;
-      	    }
-			if (get_board(bi, bj) && get_board(bi, bj) == color && checkLiberty(bi, bj) == 1)
-			{
-				moves[num_moves++] = POS(ai, aj);
-				break;
+      			/* Further require the move not to be suicide for the opponent... */
+      			if (!suicide(ai, aj, OTHER_COLOR(color)))
+					moves[num_moves++] = POS(ai, aj);
+				else
+				{
+    				 /* ...however, if the move captures at least one stone,
+					  * consider it anyway.
+    				*/
+      				for (k = 0; k < 4; k++)
+					{
+      					int bi = ai + deltai[k];
+      					int bj = aj + deltaj[k];
+      					if (on_board(bi, bj) && get_board(bi, bj) == OTHER_COLOR(color))
+						{
+      						moves[num_moves++] = POS(ai, aj);
+      						break;
+      					}
+						if (get_board(bi, bj) && get_board(bi, bj) == color && checkLiberty(bi, bj) == 1)
+						{
+							moves[num_moves++] = POS(ai, aj);
+							break;
+						}
+      				}
+				}
 			}
-      	  }
-	      }
-      }
-    }
-  }
+		}
+	}
   /* Choose one of the considered moves randomly with uniform
    * distribution. (Strictly speaking the moves with smaller 1D
    * coordinates tend to have a very slightly higher probability to be
    * chosen, but for all practical purposes we get a uniform
    * distribution.)
    */
-  /*if (num_moves > 0) {
-    move = moves[rand() % num_moves];
-    *i = I(move);
-    *j = J(move);
+  if (num_moves > 0)
+  {
+	  int temp_pos = -1;
+	  aiMove(&temp_pos, color, moves, num_moves);
+	  if (temp_pos == -1)
+	  {
+		  (*i) = -1;
+		  (*j) = -1;
+	  }
+	  else
+	  {
+		  *i = I(temp_pos);
+		  *j = J(temp_pos);
+	  }
   }
-  else {*/
-    /* But pass if no move was considered. */
- /*   *i = -1;
-    *j = -1;
-  }*/
-	int temp_pos = -1;
-	 aiMove(&temp_pos,color,moves,num_moves);
-	 //ofstream outfile  ("loglog.txt");
-	 //outfile<<temp_pos<<endl;
-	 if (temp_pos ==-1)
-	 {
-		 (*i) = -1;
-		 (*j) = -1;
-	 }
-	 else
-	 {
-		*i = I(temp_pos);
-		*j = J(temp_pos);
-		 //outfile<<endl<<(*i)<<endl<<(*j)<<endl;
-	 }
-	 //outfile.close();
+  else
+  {
+	  *i = -1;
+	  *j = -1;
+  }
+  ofstream outfile1("loglog.txt", ios_base::app);
+  outfile1 << "genmove\t";
+  outfile1 << *i << " " << *j;
+  outfile1 << "\r\n";
+  outfile1.close();
 }
 
 /* Set a final status value for an entire string. */
-static void
-set_final_status_string(int pos, int status)
+static void set_final_status_string(int pos, int status)
 {
   int pos2 = pos;
-  do {
+  do
+  {
     final_status[pos2] = status;
     pos2 = next_stone[pos2];
   } while (pos2 != pos);
@@ -660,8 +661,8 @@ void calcGame(int *b, int *w, int *bScore, int *wScore)
 	for (int d = 0; d < board_size*board_size; ++d)
 	{
 		if (board[d] == EMPTY) continue; //black and white changed into board[d]
-		int x = J(d);    //d%SIZE into  J(d)
-		int y = I(d);   //D /SIZE into I(d)
+		int x = I(d);    //d%SIZE into  J(d)
+		int y = J(d);   //D /SIZE into I(d)
 		for (int i = maxmax(x - IMPACTDIS, 0); i <= minmin(x + IMPACTDIS, board_size - 1); ++i)
 		{
 			for (int j = maxmax(y - IMPACTDIS, 0); j <= minmin(y + IMPACTDIS, board_size - 1); ++j)
@@ -929,113 +930,113 @@ int autoRun2(int color)
 
 int autoRun(int color)
 {
-  if (color!=BLACK && color!=WHITE) return 0;
-  bool passBlack = false;
-  bool passWhite = false;
-  int iterstep = 0;
-  int maxStep = MAXSTEP - step > 10 ? MAXSTEP - step : 10;
-  if (color==BLACK)
-  {
-    while ((!passBlack || !passWhite) && iterstep < maxStep)
-    {
-      ++iterstep;
-      bool flagBlack = true;
-      bool flagWhite = true;
-      for (int i = 0; i < TRYTIME; ++i)
-      {
-        int ppos = rand()%(board_size*board_size);
-        flagBlack = available(I(ppos), J(ppos), BLACK);
-        if (flagBlack)
-        {
-          play_move(I(ppos), J(ppos), BLACK);
-          break;
-        }
-      }
-      passBlack = !flagBlack;
-      for (int i = 0; i < TRYTIME; ++i)
-      {
-        int ppos = rand()%(board_size*board_size);
-        flagWhite = available(I(ppos), J(ppos), WHITE);
-        if (flagWhite)
-        {
-          play_move(I(ppos), J(ppos), WHITE);
-          break;
-        }
-      }
-      passWhite = !flagWhite;
-    }
-  }
-  else
-  {
-    //ofstream outfile1  ("loglog.txt");
-    //outfile1<<"o";
-    //outfile1.close();
-    while ((!passBlack || !passWhite) && iterstep < maxStep)
-    {
-      ++iterstep;
-      bool flagBlack = false;
-      bool flagWhite = false;
-      for (int i = 0; i < TRYTIME; ++i)
-      {
-        int ppos = rand()%(board_size*board_size);
-        flagWhite = available(I(ppos), J(ppos), WHITE);
-        if (flagWhite)
-        {
-          play_move(I(ppos), J(ppos), WHITE);
-          break;
-        }
-      }
-      passWhite = !flagWhite;
-      for (int i = 0; i < TRYTIME; ++i)
-      {
-        int ppos = rand()%(board_size*board_size);
-        flagBlack = available(I(ppos), J(ppos), BLACK);
-        if (flagBlack)
-        {
-          play_move(I(ppos), J(ppos), BLACK);
-          break;
-        }
-      }
-      passBlack = !flagBlack;
-    }
-  }
-  //ofstream outfile2  ("loglog.txt");
-  //outfile2<<"k";
-  //outfile2.close();
-  int bScore = 0;
-  int wScore = 0;
-  int b = 0;
-  int w = 0;
-  calcGame(&b, &w, &bScore, &wScore);
-  return b-w;
-  //return rand()*100%(board_size*board_size)-112;
+	if (color!=BLACK && color!=WHITE) return 0;
+	bool passBlack = false;
+	bool passWhite = false;
+	int iterstep = 0;
+	int maxStep = MAXSTEP - step > 10 ? MAXSTEP - step : 10;
+	if (color==BLACK)
+	{
+		while ((!passBlack || !passWhite) && iterstep < maxStep)
+		{
+			++iterstep;
+			 bool flagBlack = true;
+			bool flagWhite = true;
+			for (int i = 0; i < TRYTIME; ++i)
+			{
+				int ppos = rand()%(board_size*board_size);
+				flagBlack = available(I(ppos), J(ppos), BLACK);
+				if (flagBlack)
+				{
+					play_move(I(ppos), J(ppos), BLACK);
+					break;
+				}
+			}
+			passBlack = !flagBlack;
+			for (int i = 0; i < TRYTIME; ++i)
+			{
+				int ppos = rand()%(board_size*board_size);
+				flagWhite = available(I(ppos), J(ppos), WHITE);
+				if (flagWhite)
+				{
+					play_move(I(ppos), J(ppos), WHITE);
+					break;
+				}
+			}
+			passWhite = !flagWhite;
+		}
+	}
+	else
+	{
+		//ofstream outfile1  ("loglog.txt");
+		//outfile1<<"o";
+		//outfile1.close();
+		while ((!passBlack || !passWhite) && iterstep < maxStep)
+		{
+			++iterstep;
+			bool flagBlack = false;
+			bool flagWhite = false;
+			for (int i = 0; i < TRYTIME; ++i)
+			{
+				int ppos = rand()%(board_size*board_size);
+				flagWhite = available(I(ppos), J(ppos), WHITE);
+				if (flagWhite)
+				{
+					play_move(I(ppos), J(ppos), WHITE);
+					break;
+				}
+			}
+			passWhite = !flagWhite;
+			for (int i = 0; i < TRYTIME; ++i)
+			{
+				int ppos = rand()%(board_size*board_size);
+				flagBlack = available(I(ppos), J(ppos), BLACK);
+				if (flagBlack)
+				{
+					play_move(I(ppos), J(ppos), BLACK);
+					break;
+				}
+			}
+			passBlack = !flagBlack;
+		}
+	}
+	//ofstream outfile2  ("loglog.txt");
+	//outfile2<<"k";
+	//outfile2.close();
+	int bScore = 0;
+	int wScore = 0;
+	int b = 0;
+	int w = 0;
+	calcGame(&b, &w, &bScore, &wScore);
+	return b-w;
+	//return rand()*100%(board_size*board_size)-112;
 }
 
 bool available(int i, int j, int color)
 {
-  //return (on_board(i,j)==1) && (legal_move(i,j,color)==1) && (suicide(i,j,color)==0);
-  if (!on_board(i,j) || get_board(i,j) != EMPTY) return false;
-  if (legal_move(i,j,color) && !suicide(i,j,color))
-  {
-    if (!suicide(i,j, OTHER_COLOR(color)))
-      return true;
-    else
-    {
-      for (int k=0; k<4; ++k)
-      {
-        int bi = i+deltai[k];
-        int bj = j+deltaj[k];
-        if (on_board(bi, bj) && get_board(bi, bj) == OTHER_COLOR(color)) {
-          return true;
-        }
-		if (get_board(bi, bj) && get_board(bi, bj) == color && checkLiberty(bi, bj) == 1)
-		{
+	//return (on_board(i,j)==1) && (legal_move(i,j,color)==1) && (suicide(i,j,color)==0);
+	if (!on_board(i,j) || get_board(i,j) != EMPTY) return false;
+	if (legal_move(i,j,color) && !suicide(i,j,color))
+	{
+		if (!suicide(i,j, OTHER_COLOR(color)))
 			return true;
+		else
+		{
+			for (int k=0; k<4; ++k)
+			{
+				int bi = i+deltai[k];
+				int bj = j+deltaj[k];
+				if (on_board(bi, bj) && get_board(bi, bj) == OTHER_COLOR(color)) {
+					return true;
+				}
+				if (get_board(bi, bj) && get_board(bi, bj) == color && checkLiberty(bi, bj) == 1)
+				{
+					return true;
+				}
+			}
 		}
-      }
-    }
-  }
-  return false;
+	}
+	return false;
 }
 
 void getAvailableMonteCarloMove(uctNode *root, int *games)
@@ -1166,7 +1167,7 @@ void aiMoveMonteCarlo(int *pos, int color,int *moves,int num_moves)
     if (color==BLACK)
     {
       uctNode *tmpNode = root->nextMove[root->nextMove.size() - 1];
-      mylog("black:",tmpNode->playResult / tmpNode->play);
+      //mylog("black:",tmpNode->playResult / tmpNode->play);
       if (tmpNode->playResult / tmpNode->play > b - w)
       {
         (*pos) = tmpNode->pos;
@@ -1365,25 +1366,24 @@ int generate_legal_moves(int* moves, int color)
 
 uctNode* expand(uctNode* curNode, int* moves, int num_moves)
 {
-	//TODO 未初始化
 	for (int i = 0; i < num_moves; ++i)
-  {
-    bool flag = true;
-    for (int j=0; j<curNode->nextMove.size(); ++j)
-    {
-      if (moves[i] == curNode->nextMove[j]->pos)
-      {
-        flag = false;
-        break;
-      }
-    }
-    if (flag)//TODO
-    {
-      uctNode* nextchosenNode = new uctNode(moves[i], OTHER_COLOR(curNode->color), curNode);
-      curNode->addPos(nextchosenNode);
-      return nextchosenNode;
-    }
-  }
+	{
+		bool flag = true;
+		for (int j=0; j<curNode->nextMove.size(); ++j)
+		{
+			if (moves[i] == curNode->nextMove[j]->pos)
+			{
+				flag = false;
+				break;
+			}
+		}
+		if (flag)//TODO
+		{
+			uctNode* nextchosenNode = new uctNode(moves[i], OTHER_COLOR(curNode->color), curNode);
+			curNode->addPos(nextchosenNode);
+			return nextchosenNode;
+		}
+	}
 	return NULL; //indicates error
 }
 
@@ -1404,16 +1404,21 @@ uctNode* treePolicy(uctNode* v, int games)
 	int num_moves;	//available moves_count
 	while (curNode->nextMove.size() > 0 || !curNode->lastMove) //while not leaf node, or is root
 	{
-    if (curNode->pos != POS(rivalMovei, rivalMovej))
-    {
-      play_move(I(curNode->pos), J(curNode->pos), curNode->color);
-    }
-		num_moves = generate_legal_moves(moves, curNode->color);
+		if (curNode->pos != POS(rivalMovei, rivalMovej))
+		{
+			play_move(I(curNode->pos), J(curNode->pos), curNode->color);
+		}
+		num_moves = generate_legal_moves(moves, OTHER_COLOR(curNode->color));
 		if (num_moves != curNode->nextMove.size()) //not fully expanded
-			return expand(curNode, moves, num_moves);
+		{
+			uctNode* tmp = expand(curNode, moves, num_moves);
+			delete[]moves;
+			return tmp;
+		}			
 		else
 			curNode = bestchild(curNode, 1, games);
 	}
+	delete[]moves;
 	return curNode;
 }
 
@@ -1428,6 +1433,11 @@ void backup(uctNode* v, int reward)
 }
 void uctSearch(int *pos, int color, int *moves, int num_moves)
 {
+	if (rivalMovei == -1 || rivalMovej == -1)
+	{
+		aiMoveGreedy2(pos, color, moves, num_moves);
+		return;
+	}
 	srand(time(NULL));
 	int * store_board = new int[board_size*board_size];
 	int * store_next_stone = new int[board_size*board_size];
@@ -1462,14 +1472,21 @@ void uctSearch(int *pos, int color, int *moves, int num_moves)
 		ko_i = storeko_i;
 		ko_j = storeko_j;
 	}
-
-	uctNode* resNode = bestchild(root, 0,games); //final result
-	*pos = resNode->pos;
+	if (root->nextMove.size()>0)
+	{
+		uctNode* resNode = bestchild(root, 0, games); //final result
+		*pos = resNode->pos;
+	}
+	else
+	{
+		*pos = -1;
+	}
+	
 
   delete root;
   delete []store_board;
   delete []store_next_stone;
-  if ((*pos) == -1 || (*pos)==POS(ko_i,ko_j))
+  if ((*pos) == -1 || (*pos)==POS(ko_i,ko_j) || !legal_move(I(*pos),J(*pos),color))
   {
     aiMoveGreedy2(pos, color, moves, num_moves);
   }
@@ -1480,7 +1497,10 @@ void calScore(uctNode* tmp, int games)
   for (int ii = 0; ii < tmp->nextMove.size(); ++ii)
   {
     uctNode *tt = tmp->nextMove[ii];
-    tt->score = (tt->playResult + 0.0) / tt->play + sqrt(2*log(games)/tt->play);
+	if (tt->play == 0)
+		tt->score = 0;
+	else
+		tt->score = (tt->playResult + 0.0) / tt->play + sqrt(2*log(games)/tt->play);
   }
 }
 
