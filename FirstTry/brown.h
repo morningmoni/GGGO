@@ -33,7 +33,7 @@
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 #include "uctNode.h"
 
-#define VERSION_STRING "1.0"
+
 
 #define MIN_BOARD 2
 #define MAX_BOARD 23
@@ -78,7 +78,6 @@ extern int step;
 #define MAXGAMES 5000
 #define MONTECARLORANGE 13
 #define CLEARTIME 10
-#define PRECHECKRANGE 2
 
 
 
@@ -88,7 +87,7 @@ int board_empty(void);
 int get_board(int i, int j);
 int get_string(int i, int j, int *stonei, int *stonej);
 int legal_move(int i, int j, int color);
-void play_move(int i, int j, int color);
+
 void generate_move(int *i, int *j, int color);
 void compute_final_status(void);
 int get_final_status(int i, int j);
