@@ -39,10 +39,11 @@
 #include <stdio.h>
 #include <stdlib.h>  /* for rand() and srand() */
 #include <string.h>
-#include "brown.h"
+
 #include "gtp.h"
 #include "time.h"
 #include <fstream>
+#include "GoEngine.h"
 using namespace std;
 
 /* Forward declarations. */
@@ -92,11 +93,12 @@ static struct gtp_command commands[] = {
 	{ NULL, NULL }
 };
 
-
+GoBoard * main_go_board = NULL;
+GoEngine * main_engine = NULL;
 int _tmain(int argc, char** argv)
 {
 	unsigned int random_seed = 1;
-	ofstream outfile1("loglog.txt");
+	ofstream outfile1("log2.txt");
 	time_t m_time = time(NULL);
 	tm* t = localtime(&m_time);
 	outfile1 << "start at "<<t->tm_year+1900<<"-"<<t->tm_mon+1<<"-"<<t->tm_mday<<"-"<<t->tm_hour<<"-"<<t->tm_min<<"-"<<t->tm_sec;
@@ -111,7 +113,19 @@ int _tmain(int argc, char** argv)
 	setbuf(stdout, NULL);
 
 	/* Inform the GTP utility functions about the initial board size. */
-	gtp_internal_set_boardsize(board_size);
+	gtp_internal_set_boardsize(GoBoard::board_size);
+	if (main_go_board != NULL)
+	{
+		delete main_go_board;
+		main_go_board = NULL;
+	}
+	if (main_engine != NULL)
+	{
+		delete main_engine;
+		main_engine = NULL;
+	}
+	main_go_board = new GoBoard();
+	main_engine = new GoEngine(main_go_board);
 
 	/* Initialize the board. */
 	//init_brown();
@@ -192,7 +206,19 @@ gtp_boardsize(char *s)
 	if (boardsize < MIN_BOARD || boardsize > MAX_BOARD)
 		return gtp_failure("unacceptable size");
 
-	board_size = boardsize;
+	GoBoard::board_size = boardsize;
+	if (main_go_board != NULL)
+	{
+		delete main_go_board;
+		main_go_board = NULL;
+	}
+	if (main_engine != NULL)
+	{
+		delete main_engine;
+		main_engine = NULL;
+	}
+	main_go_board = new GoBoard();
+	main_engine = new GoEngine(main_go_board);
 	gtp_internal_set_boardsize(boardsize);
 	//init_brown();
 
@@ -202,14 +228,14 @@ gtp_boardsize(char *s)
 static int
 gtp_clear_board(char *s)
 {
-	clear_board();
+	main_engine->go_board->clear_board();
 	return gtp_success("");
 }
 
 static int
 gtp_komi(char *s)
 {
-	if (sscanf(s, "%f", &komi) < 1)
+	if (sscanf(s, "%f", &GoBoard::komi) < 1)
 		return gtp_failure("komi not a float");
 
 	return gtp_success("");
@@ -223,7 +249,7 @@ place_handicap(char *s, int fixed)
 	int m, n;
 	int first_stone = 1;
 
-	if (!board_empty())
+	if (!main_go_board->board_empty())
 		return gtp_failure("board not empty");
 
 	if (sscanf(s, "%d", &handicap) < 1)
@@ -232,18 +258,18 @@ place_handicap(char *s, int fixed)
 	if (handicap < 2)
 		return gtp_failure("invalid handicap");
 
-	if (fixed && !valid_fixed_handicap(handicap))
+	if (fixed && !main_go_board->valid_fixed_handicap(handicap))
 		return gtp_failure("invalid handicap");
 
 	if (fixed)
-		place_fixed_handicap(handicap);
+		main_go_board->place_fixed_handicap(handicap);
 	else
-		place_free_handicap(handicap);
+		main_engine->place_free_handicap(handicap);
 
 	gtp_start_response(GTP_SUCCESS);
-	for (m = 0; m < board_size; m++)
-	for (n = 0; n < board_size; n++)
-	if (get_board(m, n) != EMPTY) {
+	for (m = 0; m < GoBoard::board_size; m++)
+	for (n = 0; n < GoBoard::board_size; n++)
+	if (main_go_board->get_board(m, n) != EMPTY) {
 		if (first_stone)
 			first_stone = 0;
 		else
@@ -272,28 +298,28 @@ gtp_set_free_handicap(char *s)
 	int n;
 	int handicap = 0;
 
-	if (!board_empty())
+	if (!main_go_board->board_empty())
 		return gtp_failure("board not empty");
 
 	while ((n = gtp_decode_coord(s, &i, &j)) > 0) {
 		s += n;
 
-		if (get_board(i, j) != EMPTY) {
-			clear_board();
+		if (main_go_board->get_board(i, j) != EMPTY) {
+			main_go_board->clear_board();
 			return gtp_failure("repeated vertex");
 		}
 
-		play_move(i, j, BLACK);
+		main_go_board->play_move(i, j, BLACK);
 		handicap++;
 	}
 
 	if (sscanf(s, "%*s") != EOF) {
-		clear_board();
+		main_go_board->clear_board();
 		return gtp_failure("invalid coordinate");
 	}
 
-	if (handicap < 2 || handicap >= board_size * board_size) {
-		clear_board();
+	if (handicap < 2 || handicap >= GoBoard::board_size*GoBoard::board_size) {
+		main_go_board->clear_board();
 		return gtp_failure("invalid handicap");
 	}
 
@@ -309,14 +335,14 @@ gtp_play(char *s)
 	if (!gtp_decode_move(s, &color, &i, &j))
 		return gtp_failure("invalid color or coordinate");
 
-	ofstream outfile1("loglog.txt", ios_base::app);
+	ofstream outfile1("log2.txt", ios_base::app);
 	outfile1 << "rival  \t";
 	outfile1 << i << " " << j;
 	outfile1 << "\r\n";
 	outfile1.close();
 
-	if (!legal_move(i, j, color))
-		return gtp_failure("illegal move");
+	if (!main_go_board->legal_move(i, j, color))
+		return gtp_failure("GGGO v2.0 finds a rival's illegal move");
 
 	if (i == -1 || j == -1)
 	{
@@ -329,7 +355,7 @@ gtp_play(char *s)
 		rivalMovej = j;
 	}
 
-	play_move(i, j, color);
+	main_go_board->play_move(i, j, color);
 	return gtp_success("");
 }
 
@@ -342,12 +368,12 @@ gtp_genmove(char *s)
 	if (!gtp_decode_color(s, &color))
 		return gtp_failure("invalid color");
 
-	generate_move(&i, &j, color);
+	main_engine->generate_move(&i, &j, color);
 	//ofstream hehe("logloglog.txt");
 	//hehe<<i<<" "<<j<<endl;
 	//hehe.close();
 
-	ofstream outfile1("loglog.txt", ios_base::app);
+	ofstream outfile1("log2.txt", ios_base::app);
 	outfile1 << "self   \t";
 	outfile1 << i << " " << j;
 	outfile1 << "\r\n";
@@ -364,7 +390,7 @@ gtp_genmove(char *s)
 		lastMovej = j;
 	}
 	++step;
-	play_move(i, j, color);
+	main_go_board->play_move(i, j, color);
 
 	gtp_start_response(GTP_SUCCESS);
 	gtp_mprintf("%m", i, j);
@@ -377,18 +403,18 @@ gtp_genmove(char *s)
 static int
 gtp_final_score(char *s)
 {
-	float score = komi;
+	float score = GoBoard::komi;
 	int i, j;
 
-	compute_final_status();
-	for (i = 0; i < board_size; i++)
-	for (j = 0; j < board_size; j++) {
-		int status = get_final_status(i, j);
+	main_go_board->compute_final_status();
+	for (i = 0; i < GoBoard::board_size; i++)
+	for (j = 0; j < GoBoard::board_size; j++) {
+		int status = main_go_board->get_final_status(i, j);
 		if (status == BLACK_TERRITORY)
 			score--;
 		else if (status == WHITE_TERRITORY)
 			score++;
-		else if ((status == ALIVE) ^ (get_board(i, j) == WHITE))
+		else if ((status == ALIVE) ^ (main_go_board->get_board(i, j) == WHITE))
 			score--;
 		else
 			score++;
@@ -422,21 +448,21 @@ gtp_final_status_list(char *s)
 	else
 		return gtp_failure("invalid status");
 
-	compute_final_status();
+	main_go_board->compute_final_status();
 
 	gtp_start_response(GTP_SUCCESS);
 
 	first_string = 1;
-	for (i = 0; i < board_size; i++)
-	for (j = 0; j < board_size; j++)
-	if (get_final_status(i, j) == status) {
+	for (i = 0; i < GoBoard::board_size; i++)
+	for (j = 0; j < GoBoard::board_size; j++)
+	if (main_go_board->get_final_status(i, j) == status) {
 		int k;
 		int stonei[MAX_BOARD * MAX_BOARD];
 		int stonej[MAX_BOARD * MAX_BOARD];
-		int num_stones = get_string(i, j, stonei, stonej);
+		int num_stones = main_go_board->get_string(i, j, stonei, stonej);
 		/* Clear the status so we don't find the string again. */
 		for (k = 0; k < num_stones; k++)
-			set_final_status(stonei[k], stonej[k], UNKNOWN);
+			main_go_board->set_final_status(stonei[k], stonej[k], UNKNOWN);
 
 		if (first_string)
 			first_string = 0;
@@ -456,7 +482,7 @@ letters(void)
 	int i;
 
 	printf("  ");
-	for (i = 0; i < board_size; i++)
+	for (i = 0; i < GoBoard::board_size; i++)
 		printf(" %c", 'A' + i + (i >= 8));
 }
 
@@ -471,13 +497,13 @@ gtp_showboard(char *s)
 
 	letters();
 
-	for (i = 0; i < board_size; i++) {
-		printf("\n%2d", board_size - i);
+	for (i = 0; i < GoBoard::board_size; i++) {
+		printf("\n%2d", GoBoard::board_size - i);
 
-		for (j = 0; j < board_size; j++)
-			printf(" %c", symbols[get_board(i, j)]);
+		for (j = 0; j < GoBoard::board_size; j++)
+			printf(" %c", symbols[main_go_board->get_board(i, j)]);
 
-		printf(" %d", board_size - i);
+		printf(" %d", GoBoard::board_size - i);
 	}
 
 	printf("\n");
