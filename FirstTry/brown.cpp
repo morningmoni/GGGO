@@ -1,4 +1,4 @@
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
+﻿/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  * This is Brown, a simple go program.                           *
  *                                                               *
  * Copyright 2003 and 2004 by Gunnar Farneb鋍k.                  *
@@ -99,6 +99,20 @@ static int ko_i, ko_j;
 
 
 
+
+  /* Illegal ko recapture. It is not illegal to fill the ko so we must
+   * check the color of at least one neighbor.
+   */
+  if (i == ko_i && j == ko_j
+	  && (((on_board(i - 1, j) && get_board(i - 1, j) == other) || !on_board(i - 1, j))
+	  && ((on_board(i + 1, j) && get_board(i + 1, j) == other) || !on_board(i + 1, j))
+	  && ((on_board(i, j - 1) && get_board(i, j - 1) == other) || !on_board(i, j - 1))
+    && ((on_board(i, j + 1) && get_board(i, j + 1) == other) || !on_board(i, j + 1) )) )
+    return 0;
+
+  return 1;
+}
+
 
 /* Is a move at (i, j) suicide for color? */
 
