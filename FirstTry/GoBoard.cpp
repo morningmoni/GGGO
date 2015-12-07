@@ -1,21 +1,53 @@
 #include "GoBoard.h"
 #include <memory.h>
 #include <stdlib.h>
+#include "GoEngine.h"
+
+int GoBoard::board_size = 15;
+float GoBoard::komi = 3.14;
+int GoBoard::final_status[MAX_BOARD * MAX_BOARD];
+int GoBoard::deltai[4] = {-1, 1, 0, 0};
+int GoBoard::deltaj[4] = {0, 0, -1, 1};
+
+int GoBoard::pass_move(int i, int j) { return i == -1 && j == -1; }
+int GoBoard::POS(int i, int  j) { return ((i)* board_size + (j)); }
+int GoBoard::I(int pos) { return ((pos) / board_size); }
+int GoBoard::J(int pos) { return ((pos) % board_size); }
+
+GoBoard::~GoBoard()
+{
+	delete[]board;
+	delete[]next_stone;
+}
+
+GoBoard::GoBoard()
+{
+	int ko_i = -1;
+	int ko_j = -1;
+	int step = 0;
+	int handicap = 0;
+	board = new int[board_size*board_size];
+	next_stone = new int[board_size*board_size];
+	for (int i = 0; i < board_size*board_size; ++i)
+	{
+		board[i] = EMPTY;
+		next_stone[i] = i;
+	}
+}
+
 GoBoard * GoBoard::copy_board()
 {
 	GoBoard *temp = new GoBoard();
-	temp->board = new int[board_size2];
-	temp->next_stone = new int[board_size2];
-	for (int i = 0; i < board_size2; ++i)
+	temp->board = new int[board_size*board_size];
+	temp->next_stone = new int[board_size*board_size];
+	for (int i = 0; i < board_size*board_size; ++i)
 	{
 		temp->board[i] = board[i];
 		temp->next_stone[i] = next_stone[i];
 	}
-	temp->board_size = board_size;
-	temp->board_size2 = board_size2;
 	temp->ko_i = ko_i;
 	temp->ko_j = ko_j;
-	temp->komi = komi;
+	temp->step = step;
 	temp->handicap = handicap;
 	return temp;
 }
@@ -23,7 +55,7 @@ GoBoard * GoBoard::copy_board()
 int GoBoard::board_empty()
 {
 	int i;
-	for (i = 0; i < board_size2; i++)
+	for (i = 0; i < board_size*board_size; i++)
 		if (board[i] != EMPTY)
 			return 0;
 
@@ -481,7 +513,7 @@ int GoBoard::autoRun(int color)
 			bool flagWhite = true;
 			for (int i = 0; i < TRYTIME; ++i)
 			{
-				int ppos = rand() % (board_size2);
+				int ppos = rand() % (board_size*board_size);
 				flagBlack = available(I(ppos), J(ppos), BLACK);
 				if (flagBlack)
 				{

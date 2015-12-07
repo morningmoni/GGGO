@@ -59,6 +59,9 @@ extern int rivalMovei;
 extern int rivalMovej;
 extern int step;
 
+int deltai[4] = { -1, 1, 0, 0 };
+int deltaj[4] = { 0, 0, -1, 1 };
+
 //below defined by us
 
 #define IMPACT 32

@@ -5,15 +5,14 @@
 #include <windows.h>
 #include "algorithm"
 #include<vector>
+#include "publicFunc.h"
+#include <fstream>
 using namespace std;
+GoEngine::~GoEngine(){}
+
 GoEngine::GoEngine(GoBoard * b) {
 	go_board = b;
 }
-
-
-
-
-
 
 uctNode* GoEngine::expand(uctNode* curNode, int* moves, int num_moves)
 {
@@ -80,11 +79,11 @@ uctNode* GoEngine::bestchild(uctNode* curNode, int c)
 		return curNode->nextMove[curNode->nextMove.size() - 1];
 }
 
-uctNode* GoEngine::treePolicy(GoBoard * temp_board)
+/*uctNode* GoEngine::treePolicy(GoBoard * temp_board)
 {
 	uctNode* curNode = root;
 
-	int* moves = new int[go_board->board_size2]; //available moves
+	int* moves = new int[GoBoard::board_size*GoBoard::board_size]; //available moves
 	int num_moves;	//available moves_count
 	EnterCriticalSection(&cs);
 	temp_board = go_board->copy_board();
@@ -108,6 +107,30 @@ uctNode* GoEngine::treePolicy(GoBoard * temp_board)
 	delete[]moves;
 	LeaveCriticalSection(&cs);
 	return curNode;
+}*/
+uctNode* GoEngine::treePolicy(uctNode* v, int games)
+{
+	uctNode* curNode = v;
+	int* moves = new int[MAX_BOARD * MAX_BOARD]; //available moves
+	int num_moves;	//available moves_count
+	while (curNode->nextMove.size() > 0 || !curNode->lastMove) //while not leaf node, or is root
+	{
+		if (curNode->pos != POS(rivalMovei, rivalMovej))
+		{
+			go_board->play_move(I(curNode->pos), J(curNode->pos), curNode->color);
+		}
+		num_moves = go_board->generate_legal_moves(moves, OTHER_COLOR(curNode->color));
+		if (num_moves != curNode->nextMove.size()) //not fully expanded
+		{
+			uctNode* tmp = expand(curNode, moves, num_moves);
+			delete[]moves;
+			return tmp;
+		}
+		else
+			curNode = bestchild(curNode, 1);
+	}
+	delete[]moves;
+	return curNode;
 }
 
 int GoEngine::defaultPolicy(GoBoard * temp,int color)
@@ -123,7 +146,7 @@ void GoEngine::backup(uctNode* v, int reward)
 }
 
 
-unsigned __stdcall GoEngine::ThreadFunc(void * p)
+/*unsigned __stdcall GoEngine::ThreadFunc(void * p)
 {
 	int seed = GetCurrentThreadId()*time(NULL);
 	srand(seed);
@@ -131,7 +154,7 @@ unsigned __stdcall GoEngine::ThreadFunc(void * p)
 	GoEngine *engine = (GoEngine *) p;
 	while (engine->games < MAXGAMES && clock()-engine->fin_clock> MAXTIME )
 	{
-		GoBoard * temp_board;
+		GoBoard * temp_board = NULL;
 
 		uctNode* chosenNode = engine->treePolicy( temp_board);
 		if (!chosenNode)
@@ -145,27 +168,44 @@ unsigned __stdcall GoEngine::ThreadFunc(void * p)
 		delete temp_board;
 	}
 	return 0;
-}
+}*/
 void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
 {
 
 	srand(time(NULL));
-	//int games = 0; games and reward is a parameter of class GoEngine
-	games = 0;
-	uctNode* root = new uctNode(POS(rivalMovei, rivalMovej), OTHER_COLOR(color), NULL);
-	//int reward = 0;
-	fin_clock = clock();
-	HANDLE handles[THREAD_NUM];
-
-	InitializeCriticalSection(&cs);
-	for (int i = 0; i < THREAD_NUM; i++) {
-		handles[i] = (HANDLE)_beginthreadex(NULL, 0, ThreadFunc, (void *)this, 0, NULL);
+	int * store_board = new int[go_board->board_size*go_board->board_size];
+	int * store_next_stone = new int[go_board->board_size*go_board->board_size];
+	for (int i = 0; i<go_board->board_size*go_board->board_size; ++i)
+	{
+		store_board[i] = go_board->board[i];
+		store_next_stone[i] = go_board->next_stone[i];
 	}
-	WaitForMultipleObjects(THREAD_NUM, handles, TRUE, INFINITE);
-	DeleteCriticalSection(&cs);
-	for (int i = 0; i < THREAD_NUM; i++) CloseHandle(handles[i]);
+	int storeStep = go_board->step;
+	int storeko_i = go_board->ko_i;
+	int storeko_j = go_board->ko_j;
 
+	int games = 0;
+	uctNode* root = new uctNode(POS(rivalMovei, rivalMovej), OTHER_COLOR(color), NULL);
+	int reward = 0;
 
+	while (games < MAXGAMES)
+	{
+		uctNode* chosenNode = treePolicy(root, games);
+		if (!chosenNode)
+			break;
+		go_board->play_move(I(chosenNode->pos), J(chosenNode->pos), chosenNode->color);
+		reward = defaultPolicy(go_board,OTHER_COLOR(chosenNode->color));
+		backup(chosenNode, reward);
+		++games;
+		for (int ii = 0; ii<go_board->board_size*go_board->board_size; ++ii)
+		{
+			go_board->board[ii] = store_board[ii];
+			go_board->next_stone[ii] = store_next_stone[ii];
+		}
+		go_board->step = storeStep;
+		go_board->ko_i = storeko_i;
+		go_board->ko_j = storeko_j;
+	}
 	if (root->nextMove.size()>0)
 	{
 		uctNode* resNode = bestchild(root, 0); //final result
@@ -178,13 +218,13 @@ void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
 
 
 	delete root;
-/*	if ((*pos) == -1 || (*pos) == POS(ko_i, ko_j) || !legal_move(I(*pos), J(*pos), color))
+	delete[]store_board;
+	delete[]store_next_stone;
+	if ((*pos) == -1 || (*pos) == POS(go_board->ko_i, go_board->ko_j) || !go_board->legal_move(I(*pos), J(*pos), color))
 	{
-		aiMoveGreedy2(pos, color, moves, num_moves);
-	}*/ 
-	//greedy not implemented
+		(*pos) = -1;
+	}
 }
-
 
 void GoEngine::aiMove(int *pos, int color, int *moves, int num_moves)
 {
@@ -205,9 +245,9 @@ void GoEngine::generate_move(int *i, int *j, int color)
 	int k;
 
 	memset(moves, 0, sizeof(moves));
-	for (ai = 0; ai < go_board->board_size; ai++)
+	for (ai = 0; ai < GoBoard::board_size; ai++)
 	{
-		for (aj = 0; aj < go_board->board_size; aj++)
+		for (aj = 0; aj < GoBoard::board_size; aj++)
 		{
 			/* Consider moving at (ai, aj) if it is legal and not suicide. */
 			if (go_board->legal_move(ai, aj, color) && !go_board->suicide(ai, aj, color))
@@ -264,6 +304,7 @@ void GoEngine::generate_move(int *i, int *j, int color)
 	{
 		*i = -1;
 		*j = -1;
+		return;
 	}
 	/*ofstream outfile1("loglog.txt", ios_base::app);
 	outfile1 << "genmove\t";
@@ -272,25 +313,6 @@ void GoEngine::generate_move(int *i, int *j, int color)
 	outfile1.close();*/   ///I include fstream.h but no use?
 }
 
-
-
-void GoEngine::init_GGGO()
-{
-	int k;
-	int i, j;
-
-	/* The GTP specification leaves the initial board configuration as
-	* well as the board configuration after a boardsize command to the
-	* discretion of the engine. We choose to start with up to 20 random
-	* stones on the board.
-	*/
-	go_board->clear_board();
-	for (k = 0; k < 20; k++) {
-		int color = rand() % 2 ? BLACK : WHITE;
-		generate_move(&i, &j, color);
-		go_board->play_move(i, j, color);
-	}
-}
 
 /* Put free placement handicap stones on the board. We do this simply
 * by generating successive black moves.

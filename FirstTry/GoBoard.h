@@ -5,7 +5,6 @@ public:
 	int * board;
 	int * next_stone;
 	static int board_size;
-	static int board_size2;// board_size*board_size
 	static float komi;
 	static int final_status[MAX_BOARD * MAX_BOARD];
 	int ko_i;
@@ -13,16 +12,19 @@ public:
 	int step;
 
 	int handicap;
-	int deltai[4] = { -1, 1, 0, 0 };
-	int deltaj[4] = { 0, 0, -1, 1 };//some parameters should be transformed to static because they have the same value, they need not to be stored for every board
+	static int deltai[4];
+	static int deltaj[4];
+
+	GoBoard();
+	~GoBoard();
 
 	GoBoard * copy_board();
-	int  I(int pos) { return ((pos) / board_size); }
-	int  J(int pos) { return ((pos) % board_size); }
-	int POS(int i, int  j) { return ((i)* board_size + (j)); }
+	int  I(int pos);
+	int  J(int pos);
+	int POS(int i, int  j);
 	int get_string(int i, int j, int *stonei, int *stonej);
 	void play_move( int i, int j, int color);
-	int pass_move(int i, int j) { return i == -1 && j == -1; }
+	int pass_move(int i, int j);
 	int on_board(int i, int j);
 	int get_board( int i, int j);
 	int board_empty();
@@ -45,6 +47,3 @@ public:
 	void place_fixed_handicap(int handicap);
 	void set_final_status_string(int pos, int status);
 };
-int GoBoard::board_size = 13;
-int GoBoard::board_size2 = 13;
-float GoBoard::komi = 3.14;

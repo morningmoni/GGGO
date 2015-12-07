@@ -93,12 +93,12 @@ static struct gtp_command commands[] = {
 	{ NULL, NULL }
 };
 
-GoBoard * main_go_board = new GoBoard();
-GoEngine * main_engine = new GoEngine(main_go_board);
+GoBoard * main_go_board = NULL;
+GoEngine * main_engine = NULL;
 int _tmain(int argc, char** argv)
 {
 	unsigned int random_seed = 1;
-	ofstream outfile1("loglog.txt");
+	ofstream outfile1("loglog2.txt");
 	time_t m_time = time(NULL);
 	tm* t = localtime(&m_time);
 	outfile1 << "start at "<<t->tm_year+1900<<"-"<<t->tm_mon+1<<"-"<<t->tm_mday<<"-"<<t->tm_hour<<"-"<<t->tm_min<<"-"<<t->tm_sec;
@@ -114,6 +114,18 @@ int _tmain(int argc, char** argv)
 
 	/* Inform the GTP utility functions about the initial board size. */
 	gtp_internal_set_boardsize(GoBoard::board_size);
+	if (main_go_board != NULL)
+	{
+		delete main_go_board;
+		main_go_board = NULL;
+	}
+	if (main_engine != NULL)
+	{
+		delete main_engine;
+		main_engine = NULL;
+	}
+	main_go_board = new GoBoard();
+	main_engine = new GoEngine(main_go_board);
 
 	/* Initialize the board. */
 	//init_brown();
@@ -195,6 +207,18 @@ gtp_boardsize(char *s)
 		return gtp_failure("unacceptable size");
 
 	GoBoard::board_size = boardsize;
+	if (main_go_board != NULL)
+	{
+		delete main_go_board;
+		main_go_board = NULL;
+	}
+	if (main_engine != NULL)
+	{
+		delete main_engine;
+		main_engine = NULL;
+	}
+	main_go_board = new GoBoard();
+	main_engine = new GoEngine(main_go_board);
 	gtp_internal_set_boardsize(boardsize);
 	//init_brown();
 
@@ -294,7 +318,7 @@ gtp_set_free_handicap(char *s)
 		return gtp_failure("invalid coordinate");
 	}
 
-	if (handicap < 2 || handicap >= GoBoard::board_size2) {
+	if (handicap < 2 || handicap >= GoBoard::board_size*GoBoard::board_size) {
 		main_go_board->clear_board();
 		return gtp_failure("invalid handicap");
 	}
