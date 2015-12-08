@@ -98,7 +98,7 @@ GoEngine * main_engine = NULL;
 int _tmain(int argc, char** argv)
 {
 	unsigned int random_seed = 1;
-	ofstream outfile1("log2.txt");
+	ofstream outfile1("log3.txt");
 	time_t m_time = time(NULL);
 	tm* t = localtime(&m_time);
 	outfile1 << "start at "<<t->tm_year+1900<<"-"<<t->tm_mon+1<<"-"<<t->tm_mday<<"-"<<t->tm_hour<<"-"<<t->tm_min<<"-"<<t->tm_sec;
@@ -126,6 +126,8 @@ int _tmain(int argc, char** argv)
 	}
 	main_go_board = new GoBoard();
 	main_engine = new GoEngine(main_go_board);
+	delete main_go_board;
+	main_go_board = NULL;
 
 	/* Initialize the board. */
 	//init_brown();
@@ -219,6 +221,8 @@ gtp_boardsize(char *s)
 	}
 	main_go_board = new GoBoard();
 	main_engine = new GoEngine(main_go_board);
+	delete main_go_board;
+	main_go_board = NULL;
 	gtp_internal_set_boardsize(boardsize);
 	//init_brown();
 
@@ -249,7 +253,7 @@ place_handicap(char *s, int fixed)
 	int m, n;
 	int first_stone = 1;
 
-	if (!main_go_board->board_empty())
+	if (!main_engine->go_board->board_empty())
 		return gtp_failure("board not empty");
 
 	if (sscanf(s, "%d", &handicap) < 1)
@@ -258,18 +262,18 @@ place_handicap(char *s, int fixed)
 	if (handicap < 2)
 		return gtp_failure("invalid handicap");
 
-	if (fixed && !main_go_board->valid_fixed_handicap(handicap))
+	if (fixed && !main_engine->go_board->valid_fixed_handicap(handicap))
 		return gtp_failure("invalid handicap");
 
 	if (fixed)
-		main_go_board->place_fixed_handicap(handicap);
+		main_engine->go_board->place_fixed_handicap(handicap);
 	else
 		main_engine->place_free_handicap(handicap);
 
 	gtp_start_response(GTP_SUCCESS);
 	for (m = 0; m < GoBoard::board_size; m++)
 	for (n = 0; n < GoBoard::board_size; n++)
-	if (main_go_board->get_board(m, n) != EMPTY) {
+	if (main_engine->go_board->get_board(m, n) != EMPTY) {
 		if (first_stone)
 			first_stone = 0;
 		else
@@ -298,28 +302,28 @@ gtp_set_free_handicap(char *s)
 	int n;
 	int handicap = 0;
 
-	if (!main_go_board->board_empty())
+	if (!main_engine->go_board->board_empty())
 		return gtp_failure("board not empty");
 
 	while ((n = gtp_decode_coord(s, &i, &j)) > 0) {
 		s += n;
 
-		if (main_go_board->get_board(i, j) != EMPTY) {
-			main_go_board->clear_board();
+		if (main_engine->go_board->get_board(i, j) != EMPTY) {
+			main_engine->go_board->clear_board();
 			return gtp_failure("repeated vertex");
 		}
 
-		main_go_board->play_move(i, j, BLACK);
+		main_engine->go_board->play_move(i, j, BLACK);
 		handicap++;
 	}
 
 	if (sscanf(s, "%*s") != EOF) {
-		main_go_board->clear_board();
+		main_engine->go_board->clear_board();
 		return gtp_failure("invalid coordinate");
 	}
 
 	if (handicap < 2 || handicap >= GoBoard::board_size*GoBoard::board_size) {
-		main_go_board->clear_board();
+		main_engine->go_board->clear_board();
 		return gtp_failure("invalid handicap");
 	}
 
@@ -335,13 +339,13 @@ gtp_play(char *s)
 	if (!gtp_decode_move(s, &color, &i, &j))
 		return gtp_failure("invalid color or coordinate");
 
-	ofstream outfile1("log2.txt", ios_base::app);
+	ofstream outfile1("log3.txt", ios_base::app);
 	outfile1 << "rival  \t";
 	outfile1 << i << " " << j;
 	outfile1 << "\r\n";
 	outfile1.close();
 
-	if (!main_go_board->legal_move(i, j, color))
+	if (!main_engine->go_board->legal_move(i, j, color))
 		return gtp_failure("GGGO v2.0 finds a rival's illegal move");
 
 	if (i == -1 || j == -1)
@@ -355,7 +359,7 @@ gtp_play(char *s)
 		rivalMovej = j;
 	}
 
-	main_go_board->play_move(i, j, color);
+	main_engine->go_board->play_move(i, j, color);
 	return gtp_success("");
 }
 
@@ -369,11 +373,8 @@ gtp_genmove(char *s)
 		return gtp_failure("invalid color");
 
 	main_engine->generate_move(&i, &j, color);
-	//ofstream hehe("logloglog.txt");
-	//hehe<<i<<" "<<j<<endl;
-	//hehe.close();
 
-	ofstream outfile1("log2.txt", ios_base::app);
+	ofstream outfile1("log3.txt", ios_base::app);
 	outfile1 << "self   \t";
 	outfile1 << i << " " << j;
 	outfile1 << "\r\n";
@@ -390,8 +391,7 @@ gtp_genmove(char *s)
 		lastMovej = j;
 	}
 	++step;
-	main_go_board->play_move(i, j, color);
-
+	main_engine->go_board->play_move(i, j, color);
 	gtp_start_response(GTP_SUCCESS);
 	gtp_mprintf("%m", i, j);
 	return gtp_finish_response();
@@ -406,15 +406,15 @@ gtp_final_score(char *s)
 	float score = GoBoard::komi;
 	int i, j;
 
-	main_go_board->compute_final_status();
+	main_engine->go_board->compute_final_status();
 	for (i = 0; i < GoBoard::board_size; i++)
 	for (j = 0; j < GoBoard::board_size; j++) {
-		int status = main_go_board->get_final_status(i, j);
+		int status = main_engine->go_board->get_final_status(i, j);
 		if (status == BLACK_TERRITORY)
 			score--;
 		else if (status == WHITE_TERRITORY)
 			score++;
-		else if ((status == ALIVE) ^ (main_go_board->get_board(i, j) == WHITE))
+		else if ((status == ALIVE) ^ (main_engine->go_board->get_board(i, j) == WHITE))
 			score--;
 		else
 			score++;
@@ -448,21 +448,21 @@ gtp_final_status_list(char *s)
 	else
 		return gtp_failure("invalid status");
 
-	main_go_board->compute_final_status();
+	main_engine->go_board->compute_final_status();
 
 	gtp_start_response(GTP_SUCCESS);
 
 	first_string = 1;
 	for (i = 0; i < GoBoard::board_size; i++)
 	for (j = 0; j < GoBoard::board_size; j++)
-	if (main_go_board->get_final_status(i, j) == status) {
+	if (main_engine->go_board->get_final_status(i, j) == status) {
 		int k;
 		int stonei[MAX_BOARD * MAX_BOARD];
 		int stonej[MAX_BOARD * MAX_BOARD];
-		int num_stones = main_go_board->get_string(i, j, stonei, stonej);
+		int num_stones = main_engine->go_board->get_string(i, j, stonei, stonej);
 		/* Clear the status so we don't find the string again. */
 		for (k = 0; k < num_stones; k++)
-			main_go_board->set_final_status(stonei[k], stonej[k], UNKNOWN);
+			main_engine->go_board->set_final_status(stonei[k], stonej[k], UNKNOWN);
 
 		if (first_string)
 			first_string = 0;
@@ -501,7 +501,7 @@ gtp_showboard(char *s)
 		printf("\n%2d", GoBoard::board_size - i);
 
 		for (j = 0; j < GoBoard::board_size; j++)
-			printf(" %c", symbols[main_go_board->get_board(i, j)]);
+			printf(" %c", symbols[main_engine->go_board->get_board(i, j)]);
 
 		printf(" %d", GoBoard::board_size - i);
 	}

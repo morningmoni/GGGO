@@ -4,15 +4,35 @@
 #include <process.h>
 #include <windows.h>
 #include "algorithm"
-#include<vector>
+#include <vector>
 #include "publicFunc.h"
 #include <fstream>
 #include "GoBoard.h"
 using namespace std;
-GoEngine::~GoEngine(){}
+
+GoEngine::~GoEngine()
+{
+	delete go_board;
+	go_board = NULL;
+}
 
 GoEngine::GoEngine(GoBoard * b) {
-	go_board = b;
+	go_board = b->copy_board();
+}
+
+GoEngine * GoEngine::copy_engine(GoBoard *b)
+{
+	GoEngine * temp_engine = new GoEngine(b);
+	temp_engine->games = games;
+	temp_engine->move_color = move_color;
+	temp_engine->rivalMovei = rivalMovei;
+	temp_engine->rivalMovej = rivalMovej;
+	if (!root)
+		temp_engine->root = NULL;
+	else
+		temp_engine->root = root->copy();
+	temp_engine->fin_clock = fin_clock;
+	return temp_engine;
 }
 
 uctNode* GoEngine::expand(uctNode* curNode, int* moves, int num_moves)
@@ -170,47 +190,62 @@ void GoEngine::backup(uctNode* v, int reward)
 	}
 	return 0;
 }*/
-void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
-{
 
-	srand(time(NULL));
-	int * store_board = new int[GoBoard::board_size*GoBoard::board_size];
-	int * store_next_stone = new int[GoBoard::board_size*GoBoard::board_size];
-	for (int i = 0; i<GoBoard::board_size*GoBoard::board_size; ++i)
-	{
-		store_board[i] = go_board->board[i];
-		store_next_stone[i] = go_board->next_stone[i];
-	}
-	int storeStep = go_board->step;
-	int storeko_i = go_board->ko_i;
-	int storeko_j = go_board->ko_j;
-	//GoBoard* store = go_board->copy_board();
-	int games = 0;
-	uctNode* root = new uctNode(POS(rivalMovei, rivalMovej), OTHER_COLOR(color), NULL);
+struct param {
+	GoEngine * go_engine;
+	int thread_id;
+};
+DWORD WINAPI  GoEngine::ThreadFunc(LPVOID p)
+{
+	int seed = GetCurrentThreadId()*time(NULL);
+	srand(seed);
+	param * temp_p = (param *)p;
+	GoEngine * engine = temp_p->go_engine;
+	GoEngine * temp_engine = engine->copy_engine(engine->go_board); // remember to delete
+
+	uctNode* root = new uctNode(temp_engine->go_board->POS(temp_engine->rivalMovei, temp_engine->rivalMovej), OTHER_COLOR(temp_engine->move_color), NULL);
 	int reward = 0;
 
-	while (games < MAXGAMES)
+	while (temp_engine->games < MAXGAMES)  ///visit engine-> games may cause problem, we need to add lock,  or just use time information rather than games information
 	{
-		uctNode* chosenNode = treePolicy(root, games);
+		uctNode* chosenNode = temp_engine->treePolicy(root, temp_engine->games);//treePolicy's engine->games parameter no used?
 		if (!chosenNode)
 			break;
-		go_board->play_move(I(chosenNode->pos), J(chosenNode->pos), chosenNode->color);
-		reward = defaultPolicy(go_board,OTHER_COLOR(chosenNode->color));
-		backup(chosenNode, reward);
-		++games;
+		temp_engine->go_board->play_move(I(chosenNode->pos), J(chosenNode->pos), chosenNode->color);
+		reward = temp_engine->defaultPolicy(temp_engine->go_board, OTHER_COLOR(chosenNode->color));
+		temp_engine->backup(chosenNode, reward);
+		++temp_engine->games;          //here is the source of the problem.
 		for (int ii = 0; ii<GoBoard::board_size*GoBoard::board_size; ++ii)
 		{
-			go_board->board[ii] = store_board[ii];
-			go_board->next_stone[ii] = store_next_stone[ii];
+			temp_engine->go_board->board[ii] = engine->go_board->board[ii];
+			temp_engine->go_board->next_stone[ii] = engine->go_board->next_stone[ii];
 		}
-		go_board->step = storeStep;
-		go_board->ko_i = storeko_i;
-		go_board->ko_j = storeko_j;
+		temp_engine->go_board->step = engine->go_board->step;
+		temp_engine->go_board->ko_i = engine->go_board->ko_i;
+		temp_engine->go_board->ko_j = engine->go_board->ko_j;
 		//go_board = store->copy_board();
 	}
-	if (root->nextMove.size()>0)
+	engine->roots[temp_p->thread_id] = root;
+	delete temp_engine;
+	return 0;
+}
+void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
+{
+	games = 0;
+	HANDLE handles[THREAD_NUM];
+	DWORD threadid[THREAD_NUM];
+	param para[THREAD_NUM];
+	for (int i = 0; i < THREAD_NUM; i++) {
+		para[i].go_engine = this;
+		para[i].thread_id = i;
+		handles[i] = CreateThread(NULL, 0, GoEngine::ThreadFunc, &para[i], 0, &threadid[i]);
+		
+	}
+	WaitForMultipleObjects(THREAD_NUM, handles, TRUE, INFINITE);
+
+	if (roots[0]->nextMove.size()>0)
 	{
-		uctNode* resNode = bestchild(root, 0); //final result
+		uctNode* resNode = bestchild(roots[0], 0); //final result
 		*pos = resNode->pos;
 	}
 	else
@@ -218,15 +253,16 @@ void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
 		*pos = -1;
 	}
 
-
-	delete root;
+	for (int i = 0; i < THREAD_NUM;++i)
+	{ 
+		delete roots[i];
+	}
 	//delete store;
-	delete[]store_board;
-	delete[]store_next_stone;
 	if ((*pos) == POS(go_board->ko_i, go_board->ko_j) || !go_board->legal_move(I(*pos), J(*pos), color))
 	{
 		(*pos) = -1;
 	}
+
 }
 
 void GoEngine::aiMove(int *pos, int color, int *moves, int num_moves)
@@ -240,6 +276,7 @@ void GoEngine::aiMove(int *pos, int color, int *moves, int num_moves)
 /* Generate a move. */
 void GoEngine::generate_move(int *i, int *j, int color)
 {
+	move_color = color;
 	int moves[MAX_BOARD * MAX_BOARD];
 	int num_moves = 0;
 	int ai, aj;

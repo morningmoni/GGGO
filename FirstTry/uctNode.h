@@ -17,6 +17,7 @@ public:
 	~uctNode();
 	void addPos(uctNode* p);
 	void result(int r);
+	uctNode* copy();
 };
 
 #endif

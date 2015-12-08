@@ -10,20 +10,24 @@ public:
 	GoBoard * go_board;
 	~GoEngine();
 	int games;
-	int rivalMovei, rivalMovej;
+	int move_color;
+	int rivalMovei;
+	int rivalMovej;
+	uctNode *roots[THREAD_NUM];
 	uctNode *root;
 	clock_t fin_clock;
 	CRITICAL_SECTION cs;
 
 
+	GoEngine * copy_engine(GoBoard *b);
 	GoEngine(GoBoard *b);
 	/*uctNode* treePolicy(GoBoard * temp_board);*/
 	uctNode* treePolicy(uctNode* v, int games);
 	void uctSearch(int *pos, int color, int *moves, int num_moves);
-	static unsigned  __stdcall ThreadFunc(void * p);// originally static
+	static DWORD WINAPI  ThreadFunc(LPVOID p);// originally static
 	int POS(int i, int  j) { return ((i)* GoBoard::board_size + (j)); }
-	int  I(int pos) { return ((pos) / GoBoard::board_size); }
-	int  J(int pos) { return ((pos) % GoBoard::board_size); }
+	static int  I(int pos) { return ((pos) / GoBoard::board_size); }
+	static int  J(int pos) { return ((pos) % GoBoard::board_size); }
 	uctNode* expand(uctNode* curNode, int* moves, int num_moves);
 	uctNode* bestchild(uctNode* curNode, int c);
 	void calScore(uctNode* tmp, int c);

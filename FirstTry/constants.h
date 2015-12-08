@@ -24,10 +24,10 @@
 #define TRYTIME 10
 #define MAXSTEP 60
 #define TIMELIMIT 2
-#define MAXGAMES 22500
+#define MAXGAMES 20000
 #define MONTECARLORANGE 13
 #define CLEARTIME 10
-#define VERSION_STRING "2.0"
+#define VERSION_STRING "3.0"
 #define UNKNOWN 5
 #define DEAD 0
 #define ALIVE 1

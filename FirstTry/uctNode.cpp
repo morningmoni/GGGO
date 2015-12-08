@@ -1,4 +1,19 @@
 #include "uctNode.h"
+#include <fstream>
+
+uctNode* uctNode::copy()
+{
+	uctNode* tmp = new uctNode(pos, color, lastMove);
+	tmp->play = play;
+	tmp->playResult = playResult;
+	tmp->score = score;
+	tmp->opened = opened;
+	for (int i = 0; i < nextMove.size(); ++i)
+	{
+		tmp->addPos(nextMove[i]);
+	}
+	return tmp;
+}
 
 uctNode::uctNode(int p, int c, uctNode* last)
 {

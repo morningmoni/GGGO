@@ -2,6 +2,9 @@
 #include <memory.h>
 #include <stdlib.h>
 #include "GoEngine.h"
+#include <fstream>
+
+using namespace std;
 
 int GoBoard::board_size = 15;
 float GoBoard::komi = 3.14;
@@ -535,7 +538,77 @@ void GoBoard::calcGame(int *b, int *w, int *bScore, int *wScore)
 	//printf("%d %d\n", bScore, wScore);
 }
 
+void GoBoard::show_game()
+{
+	ofstream outfile1("log3.txt", ios_base::app);
+	outfile1 << "----------------------------\r\n";
+	outfile1 << "board\r\n";
+	outfile1 << "   ";
+	for (int i = 0; i<board_size; ++i)
+	{
+		outfile1 << i;
+		if (i / 10 == 0)
+			outfile1 << "  ";
+		else
+			outfile1 << " ";
+	}
+	outfile1 << "\t     ";
 
+	for (int i = 0; i<board_size; ++i)
+	{
+		outfile1 << i;
+		if (i / 10 == 0)
+			outfile1 << "     ";
+		else
+			outfile1 << "    ";
+	}
+
+	outfile1 << "\r\n";
+	for (int i = 0; i<board_size; ++i)
+	{
+		outfile1 << i;
+		if (i / 10 == 0)
+			outfile1 << "  ";
+		else
+			outfile1 << " ";
+		for (int j = 0; j<board_size; ++j)
+		{
+			if (get_board(i, j) == BLACK)
+				outfile1 << "B";
+			else if (get_board(i, j) == WHITE)
+				outfile1 << "W";
+			else
+				outfile1 << "O";
+			outfile1 << "  ";
+		}
+
+		outfile1 << "\t";
+		outfile1 << i;
+		if (i / 10 == 0)
+			outfile1 << "  ";
+		else
+			outfile1 << " ";
+		for (int j = 0; j<board_size; ++j)
+		{
+			int t = next_stone[POS(i, j)];
+			int ui = I(t);
+			int uy = J(t);
+			if (ui / 10 == 0)
+				outfile1 << " ";
+			outfile1 << ui;
+			outfile1 << ",";
+			outfile1 << uy;
+			if (uy / 10 == 0)
+				outfile1 << "  ";
+			else
+				outfile1 << " ";
+
+		}
+		outfile1 << "\r\n";
+	}
+	outfile1 << "\r\n";
+	outfile1.close();
+}
 
 int GoBoard::autoRun(int color)
 {
