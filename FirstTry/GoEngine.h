@@ -10,12 +10,15 @@ public:
 	GoBoard * go_board;
 	~GoEngine();
 	int games;
+	int move_color;
 	int rivalMovei, rivalMovej;
+	uctNode *roots[THREAD_NUM];
 	uctNode *root;
 	clock_t fin_clock;
 	CRITICAL_SECTION cs;
 
 
+	GoEngine * copy_engine(GoBoard *b);
 	GoEngine(GoBoard *b);
 	/*uctNode* treePolicy(GoBoard * temp_board);*/
 	uctNode* treePolicy(uctNode* v, int games);

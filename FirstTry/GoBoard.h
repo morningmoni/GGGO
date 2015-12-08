@@ -10,7 +10,6 @@ public:
 	int ko_i;
 	int ko_j;
 	int step;
-
 	int handicap;
 	static int deltai[4];
 	static int deltaj[4];
