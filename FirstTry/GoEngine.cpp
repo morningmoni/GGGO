@@ -245,7 +245,8 @@ void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
 
 	if (roots[0]->nextMove.size()>0)
 	{
-		uctNode* resNode = bestchild(roots[0], 0); //final result
+		sort(roots[0]->nextMove.begin(), roots[0]->nextMove.end(), cmpMore2);
+		uctNode* resNode = roots[0]->nextMove[0]; //final result
 		*pos = resNode->pos;
 	}
 	else
