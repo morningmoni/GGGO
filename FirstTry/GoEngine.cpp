@@ -102,32 +102,32 @@ uctNode* GoEngine::bestchild(uctNode* curNode, int c)
 
 /*uctNode* GoEngine::treePolicy(GoBoard * temp_board)
 {
-	uctNode* curNode = root;
+uctNode* curNode = root;
 
-	int* moves = new int[GoBoard::board_size*GoBoard::board_size]; //available moves
-	int num_moves;	//available moves_count
-	EnterCriticalSection(&cs);
-	temp_board = go_board->copy_board();
-	while (curNode->nextMove.size() > 0 || !curNode->lastMove) //while not leaf node, or is root
-	{
-		if (curNode->pos != POS(rivalMovei, rivalMovej))
-		{
-			go_board->play_move(I(curNode->pos), J(curNode->pos), curNode->color);
-		}
-		num_moves = go_board->generate_legal_moves(moves, OTHER_COLOR(curNode->color));
-		if (num_moves != curNode->nextMove.size()) //not fully expanded
-		{
-			uctNode* tmp = expand(curNode, moves, num_moves);
-			delete[]moves;
-			LeaveCriticalSection(&cs);
-			return tmp;
-		}
-		else
-			curNode = bestchild(curNode, 1);
-	}
-	delete[]moves;
-	LeaveCriticalSection(&cs);
-	return curNode;
+int* moves = new int[GoBoard::board_size*GoBoard::board_size]; //available moves
+int num_moves;	//available moves_count
+EnterCriticalSection(&cs);
+temp_board = go_board->copy_board();
+while (curNode->nextMove.size() > 0 || !curNode->lastMove) //while not leaf node, or is root
+{
+if (curNode->pos != POS(rivalMovei, rivalMovej))
+{
+go_board->play_move(I(curNode->pos), J(curNode->pos), curNode->color);
+}
+num_moves = go_board->generate_legal_moves(moves, OTHER_COLOR(curNode->color));
+if (num_moves != curNode->nextMove.size()) //not fully expanded
+{
+uctNode* tmp = expand(curNode, moves, num_moves);
+delete[]moves;
+LeaveCriticalSection(&cs);
+return tmp;
+}
+else
+curNode = bestchild(curNode, 1);
+}
+delete[]moves;
+LeaveCriticalSection(&cs);
+return curNode;
 }*/
 uctNode* GoEngine::treePolicy(uctNode* v, int games)
 {
@@ -154,7 +154,7 @@ uctNode* GoEngine::treePolicy(uctNode* v, int games)
 	return curNode;
 }
 
-int GoEngine::defaultPolicy(GoBoard * temp,int color)
+int GoEngine::defaultPolicy(GoBoard * temp, int color)
 {
 	return temp->autoRun(color);
 }
@@ -169,26 +169,26 @@ void GoEngine::backup(uctNode* v, int reward)
 
 /*unsigned __stdcall GoEngine::ThreadFunc(void * p)
 {
-	int seed = GetCurrentThreadId()*time(NULL);
-	srand(seed);
-	int reward = 0;
-	GoEngine *engine = (GoEngine *) p;
-	while (engine->games < MAXGAMES && clock()-engine->fin_clock> MAXTIME )
-	{
-		GoBoard * temp_board = NULL;
+int seed = GetCurrentThreadId()*time(NULL);
+srand(seed);
+int reward = 0;
+GoEngine *engine = (GoEngine *) p;
+while (engine->games < MAXGAMES && clock()-engine->fin_clock> MAXTIME )
+{
+GoBoard * temp_board = NULL;
 
-		uctNode* chosenNode = engine->treePolicy( temp_board);
-		if (!chosenNode)
-			break;
-		temp_board->play_move(engine->I(chosenNode->pos), engine->J(chosenNode->pos), chosenNode->color);
-		reward = engine->defaultPolicy(temp_board,OTHER_COLOR(chosenNode->color));
-		EnterCriticalSection(&engine->cs);
-		engine->backup(chosenNode, reward);
-		++engine->games;
-		LeaveCriticalSection(&engine->cs);
-		delete temp_board;
-	}
-	return 0;
+uctNode* chosenNode = engine->treePolicy( temp_board);
+if (!chosenNode)
+break;
+temp_board->play_move(engine->I(chosenNode->pos), engine->J(chosenNode->pos), chosenNode->color);
+reward = engine->defaultPolicy(temp_board,OTHER_COLOR(chosenNode->color));
+EnterCriticalSection(&engine->cs);
+engine->backup(chosenNode, reward);
+++engine->games;
+LeaveCriticalSection(&engine->cs);
+delete temp_board;
+}
+return 0;
 }*/
 
 struct param {
@@ -239,23 +239,111 @@ void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
 		para[i].go_engine = this;
 		para[i].thread_id = i;
 		handles[i] = CreateThread(NULL, 0, GoEngine::ThreadFunc, &para[i], 0, &threadid[i]);
-		
+
 	}
 	WaitForMultipleObjects(THREAD_NUM, handles, TRUE, INFINITE);
-
-	if (roots[0]->nextMove.size()>0)
+	int * votes = new int[GoBoard::board_size*GoBoard::board_size];
+	int *visits = new int[GoBoard::board_size*GoBoard::board_size];
+	memset(votes, 0, sizeof(int)*GoBoard::board_size*GoBoard::board_size);
+	memset(visits, 0, sizeof(int)*GoBoard::board_size*GoBoard::board_size);
+	/*for (int i = 0; i < GoBoard::board_size*GoBoard::board_size; ++i)
 	{
-		sort(roots[0]->nextMove.begin(), roots[0]->nextMove.end(), cmpMore2);
-		uctNode* resNode = roots[0]->nextMove[0]; //final result
-		*pos = resNode->pos;
+		votes[i] = 0;
+		visits[i] = 0;
+	}*/
+	//if (roots[0]->nextMove.size()>0)		// exist nextmove
+	if (roots[0])
+	{
+
+		//find the votes for each nextmove to "votes" and add all the plays to "visits" 
+		for (int i = 0; i < THREAD_NUM; ++i)//find every best move for each root. and add play for every root->nextmove to visits
+		{
+			if (roots[i] == NULL || roots[i]->nextMove.size() == 0)
+				continue;
+			int bestmove = -1;
+			int mostvisit = -1;
+			for (vector<uctNode*>::iterator it = roots[i]->nextMove.begin(); it != roots[i]->nextMove.end(); ++it)
+			{
+				if ((*it)->play > mostvisit)
+				{
+					bestmove = (*it)->pos;
+					mostvisit = (*it)->play;
+				}
+				visits[(*it)->pos] += (*it)->play;
+			}
+			votes[bestmove] += 1;
+		}
+		//If only one best move according to the votes, then chose it
+		//If there are more than one best moves according to the votes,for example, two nextmove both get two votes, then chose the most visited one.
+
+		/*ofstream outfile1("log3.txt", ios_base::app);
+		for (int i = 0; i < GoBoard::board_size*GoBoard::board_size; ++i)
+		{
+			outfile1 << i<<" ";
+			if (i / 10 == 0)
+				outfile1 << " ";
+		}
+		outfile1 << "\n\r";
+		for (int i = 0; i < GoBoard::board_size*GoBoard::board_size; ++i)
+		{
+			outfile1 << visits[i] << " ";
+			if (visits[i] / 10 == 0)
+				outfile1 << " ";
+		}
+		outfile1 << "\n\r";
+		for (int i = 0; i < GoBoard::board_size*GoBoard::board_size; ++i)
+		{
+			outfile1 << votes[i] << " ";
+			if (votes[i] / 10 == 0)
+				outfile1 << " ";
+		}
+		outfile1 << "\n\r";
+		outfile1 << "------------------\n\r";
+		outfile1.close();*/
+
+		int have_same_votes = 0;//0 represents false
+		int final_most_votes_move = -1;
+		int final_most_votes = -1;
+		int final_most_visits = -1;
+		int final_most_visits_move = -1;
+		for (int i = 0; i < GoBoard::board_size*GoBoard::board_size; ++i)
+		{
+			if (votes[i] > final_most_votes)
+			{
+				final_most_votes = votes[i];
+				final_most_votes_move = i;
+				have_same_votes = 0;
+			}
+			else
+			{
+				if (votes[i] == final_most_votes)
+				{
+					have_same_votes = 1;
+				}
+			}
+			if (visits[i] > final_most_visits)
+			{
+				final_most_visits = visits[i];
+				final_most_visits_move = i;
+			}
+		}
+		if (have_same_votes)
+		{
+			*pos = final_most_visits_move;
+		}
+		else
+		{
+			*pos = final_most_votes_move;
+		}
 	}
 	else
 	{
 		*pos = -1;
 	}
-
-	for (int i = 0; i < THREAD_NUM;++i)
-	{ 
+	delete []votes;
+	delete []visits;
+	for (int i = 0; i < THREAD_NUM; ++i)
+	{
 		delete roots[i];
 	}
 	//delete store;
@@ -269,7 +357,7 @@ void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
 void GoEngine::aiMove(int *pos, int color, int *moves, int num_moves)
 {
 	aiMovePreCheck(pos, color, moves, num_moves);
-	if (*pos==-1)
+	if (*pos == -1)
 		uctSearch(pos, color, moves, num_moves);
 }
 
