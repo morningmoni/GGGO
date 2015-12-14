@@ -29,10 +29,10 @@ public:
 	static int  I(int pos) { return ((pos) / GoBoard::board_size); }
 	static int  J(int pos) { return ((pos) % GoBoard::board_size); }
 	uctNode* expand(uctNode* curNode, int* moves, int num_moves);
-	uctNode* bestchild(uctNode* curNode, int c);
-	void calScore(uctNode* tmp, int c);
-	int defaultPolicy(GoBoard* temp,int color);
-	void backup(uctNode* v, int reward);
+	uctNode* bestchild(uctNode* curNode);
+	void calScore(uctNode* tmp);
+	int defaultPolicy(GoBoard * temp, int color, bool* blackExist, bool* whiteExist);
+	void backup(uctNode* v, int reward, bool* blackExist, bool* whiteExist);
 	void generate_move(int *i, int *j, int color);
 	void aiMovePreCheck(int *pos, int color, int *moves, int num_moves);
 	void place_free_handicap(int handicap);

@@ -59,45 +59,57 @@ uctNode* GoEngine::expand(uctNode* curNode, int* moves, int num_moves)
 }
 
 
-void GoEngine::calScore(uctNode* tmp, int c)
+void GoEngine::calScore(uctNode* tmp)
 {
-	if (tmp->color == BLACK)
+
+	for (int ii = 0; ii < tmp->nextMove.size(); ++ii)
 	{
-		for (int ii = 0; ii < tmp->nextMove.size(); ++ii)
+		uctNode *tt = tmp->nextMove[ii];
+		if (tt->play == 0)
 		{
-			uctNode *tt = tmp->nextMove[ii];
-			if (tt->play == 0)
-			{
-				tt->score = 0;
-				continue;
-			}
-			tt->score = (tt->playResult + 0.0) / tt->play - c*sqrt(2 * log(tmp->play) / tt->play);
+			tt->score = 0;
+			continue;
 		}
+		tt->score = (tt->playResult + 0.0) / tt->play;
+
+		if(tt->amafPlay != 0)
+			tt->amafScore = (tt->amafPlayResult + 0.0) / tt->amafPlay;
 	}
-	else
-	{
-		for (int ii = 0; ii < tmp->nextMove.size(); ++ii)
-		{
-			uctNode *tt = tmp->nextMove[ii];
-			if (tt->play == 0)
-			{
-				tt->score = 0;
-				continue;
-			}
-			tt->score = (tt->playResult + 0.0) / tt->play + c*sqrt(2 * log(tmp->play) / tt->play);
-		}
-	}
+
+
 }
 
 
-uctNode* GoEngine::bestchild(uctNode* curNode, int c)
+uctNode* GoEngine::bestchild(uctNode* curNode)
 {
-	calScore(curNode, c);
-	sort(curNode->nextMove.begin(), curNode->nextMove.end(), cmpLess);
-	if (curNode->color == BLACK)
-		return curNode->nextMove[0];
+	calScore(curNode);
+	float alpha = MAXGAMES * 0.3 - curNode->nextMove[0]->play > 0 ? MAXGAMES * 0.3 - curNode->nextMove[0]->play : 0;;
+	float tmpScore;
+	float maxScore = alpha * curNode->nextMove[0]->score + (1 - alpha)*curNode->nextMove[0]->amafScore;
+	uctNode* best = curNode->nextMove[0];
+	if(best->color == BLACK)
+		for (int i = 1; i < curNode->nextMove.size(); ++i)
+		{
+			alpha = MAXGAMES * 0.3 - curNode->nextMove[i]->play > 0 ? MAXGAMES * 0.3 - curNode->nextMove[i]->play : 0;
+			tmpScore = alpha * curNode->nextMove[i]->amafScore + (1 - alpha)*curNode->nextMove[i]->score;
+			if (tmpScore > maxScore)
+			{
+				maxScore = tmpScore;
+				best = curNode->nextMove[i];
+			}
+		}
 	else
-		return curNode->nextMove[curNode->nextMove.size() - 1];
+		for (int i = 1; i < curNode->nextMove.size(); ++i)
+		{
+			tmpScore = alpha * curNode->nextMove[i]->score + (1 - alpha)*curNode->nextMove[i]->amafScore;
+			if (tmpScore < maxScore)
+			{
+				maxScore = tmpScore;
+				best = curNode->nextMove[i];
+			}
+		}
+
+	return best;
 }
 
 /*uctNode* GoEngine::treePolicy(GoBoard * temp_board)
@@ -148,22 +160,23 @@ uctNode* GoEngine::treePolicy(uctNode* v, int games)
 			return tmp;
 		}
 		else
-			curNode = bestchild(curNode, 1);
+			curNode = bestchild(curNode);
 	}
 	delete[]moves;
 	return curNode;
 }
 
-int GoEngine::defaultPolicy(GoBoard * temp, int color)
+int GoEngine::defaultPolicy(GoBoard * temp, int color, bool* blackExist, bool* whiteExist)
 {
-	return temp->autoRun(color);
+
+	return temp->autoRun(color, blackExist, whiteExist);
 }
 
 
 
-void GoEngine::backup(uctNode* v, int reward)
+void GoEngine::backup(uctNode* v, int reward, bool* blackExist, bool* whiteExist)
 {
-	v->result(reward);
+	v->result(reward, blackExist, whiteExist);
 }
 
 
@@ -212,10 +225,24 @@ DWORD WINAPI  GoEngine::ThreadFunc(LPVOID p)
 		if (!chosenNode)
 			break;
 		temp_engine->go_board->play_move(I(chosenNode->pos), J(chosenNode->pos), chosenNode->color);
-		reward = temp_engine->defaultPolicy(temp_engine->go_board, OTHER_COLOR(chosenNode->color));
-		temp_engine->backup(chosenNode, reward);
+
+		bool* blackExist = new bool[GoBoard::board_size*GoBoard::board_size];
+		bool* whiteExist = new bool[GoBoard::board_size*GoBoard::board_size];
+		for (int ii = 0; ii < GoBoard::board_size*GoBoard::board_size; ++ii)
+		{
+			blackExist[ii] = 0;
+			whiteExist[ii] = 0;
+		}
+		reward = temp_engine->defaultPolicy(temp_engine->go_board, OTHER_COLOR(chosenNode->color), blackExist, whiteExist);
+		temp_engine->backup(chosenNode, reward, blackExist, whiteExist);
+		//for (int ii = 0; ii < GoBoard::board_size*GoBoard::board_size; ++ii)
+		//{
+		//	printf("%d",blackExist[ii]);
+		//}
+		delete blackExist;
+		delete whiteExist;
 		++temp_engine->games;          //here is the source of the problem.
-		for (int ii = 0; ii<GoBoard::board_size*GoBoard::board_size; ++ii)
+		for (int ii = 0; ii < GoBoard::board_size*GoBoard::board_size; ++ii)
 		{
 			temp_engine->go_board->board[ii] = engine->go_board->board[ii];
 			temp_engine->go_board->next_stone[ii] = engine->go_board->next_stone[ii];
@@ -342,6 +369,7 @@ void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
 	}
 	delete []votes;
 	delete []visits;
+	
 	for (int i = 0; i < THREAD_NUM; ++i)
 	{
 		delete roots[i];

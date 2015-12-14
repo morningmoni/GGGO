@@ -7,16 +7,19 @@ class uctNode{
 public:
 	int play;
 	int playResult;
+	int amafPlay;
+	int amafPlayResult;
 	int color;
 	int pos;
 	bool opened;
 	float score;
+	float amafScore;
 	std::vector<uctNode*> nextMove;
 	uctNode* lastMove;
 	uctNode(int p, int c, uctNode *last);
 	~uctNode();
 	void addPos(uctNode* p);
-	void result(int r);
+	void result(int r, bool* blackExist, bool* whiteExist);
 	uctNode* copy();
 };
 

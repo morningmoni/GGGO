@@ -6,7 +6,7 @@
 
 using namespace std;
 
-int GoBoard::board_size = 15;
+int GoBoard::board_size = 13;
 float GoBoard::komi = 3.14;
 int GoBoard::final_status[MAX_BOARD * MAX_BOARD];
 int GoBoard::deltai[4] = {-1, 1, 0, 0};
@@ -610,13 +610,14 @@ void GoBoard::show_game()
 	outfile1.close();
 }
 
-int GoBoard::autoRun(int color)
+int GoBoard::autoRun(int color, bool* blackExist, bool* whiteExist)
 {
 	if (color != BLACK && color != WHITE) return 0;
 	bool passBlack = false;
 	bool passWhite = false;
 	int iterstep = 0;
 	int maxStep = MAXSTEP - step > 10 ? MAXSTEP - step : 10;
+
 	if (color == BLACK)
 	{
 		while ((!passBlack || !passWhite) && iterstep < maxStep)
@@ -630,7 +631,8 @@ int GoBoard::autoRun(int color)
 				flagBlack = available(I(ppos), J(ppos), BLACK);
 				if (flagBlack)
 				{
-					play_move(I(ppos), J(ppos), BLACK);
+					play_move(I(ppos), J(ppos), BLACK);			
+					blackExist[ppos] = 1;			
 					break;
 				}
 			}
@@ -642,6 +644,7 @@ int GoBoard::autoRun(int color)
 				if (flagWhite)
 				{
 					play_move(I(ppos), J(ppos), WHITE);
+					whiteExist[ppos] = 1;
 					break;
 				}
 			}
@@ -662,6 +665,7 @@ int GoBoard::autoRun(int color)
 				if (flagWhite)
 				{
 					play_move(I(ppos), J(ppos), WHITE);
+					whiteExist[ppos] = 1;
 					break;
 				}
 			}
@@ -673,6 +677,7 @@ int GoBoard::autoRun(int color)
 				if (flagBlack)
 				{
 					play_move(I(ppos), J(ppos), BLACK);
+					blackExist[ppos] = 1;
 					break;
 				}
 			}

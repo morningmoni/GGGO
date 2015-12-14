@@ -22,6 +22,9 @@ uctNode::uctNode(int p, int c, uctNode* last)
 	pos = p;
 	color = c;
 	score = 0.0;
+	amafPlay = 0;
+	amafPlayResult = 0;
+	amafScore = 0.0;
 	lastMove = last;
 	opened = false;
 }
@@ -39,13 +42,43 @@ uctNode::~uctNode()
 	}
 }
 
-void uctNode::result(int r)
+void uctNode::result(int r, bool* blackExist, bool* whiteExist)
 {
 	uctNode *p = this;
+	uctNode * tmp;
 	while (p)
 	{
+		tmp = p;
 		++(p->play);
 		p->playResult += r;
 		p = p->lastMove;
+		//new
+		if (!p)
+			break;
+		if (p->color == 1) //white
+		{
+			//child is black
+			for (int i = 1; i < p->nextMove.size(); ++i)
+			{
+				if (blackExist[p->nextMove[i]->pos] && p->nextMove[i] != tmp)
+				{
+					++(p->amafPlay);
+					p->amafPlayResult += r;
+				}
+			}
+		}
+		else //black
+		{
+			//child is white
+			for (int i = 1; i < p->nextMove.size(); ++i)
+			{
+				if (whiteExist[p->nextMove[i]->pos] && p->nextMove[i] != tmp)
+				{
+					++(p->amafPlay);
+					p->amafPlayResult += r;
+				}
+			}
+		}
+
 	}
 }

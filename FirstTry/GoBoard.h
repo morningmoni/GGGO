@@ -36,7 +36,7 @@ public:
 	int legal_move(int i, int j, int color);
 	int generate_legal_moves(int* moves, int color);
 	int checkLiberty(int i, int j);
-	int autoRun(int color);
+	int autoRun(int color, bool* blackExist, bool* whiteExist);
 	bool available(int i, int j, int color);
 	void calcGame(int *b, int *w, int *bScore, int *wScore);
 	void compute_final_status(void);
