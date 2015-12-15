@@ -610,6 +610,133 @@ void GoBoard::show_game()
 	outfile1.close();
 }
 
+
+
+
+int GoBoard::random_legal_move(int color)
+{
+	int * reasonable_moves = new int[board_size*board_size];
+	int num = generate_legal_moves(reasonable_moves, color);
+
+	if (num == 0)
+	{
+		delete reasonable_moves;
+		return -1;
+	}
+	int move = reasonable_moves[rand()*num / (RAND_MAX + 1)];
+	delete reasonable_moves;
+	return move;
+}
+
+int GoBoard::select_and_play(int color)
+{
+	/*int move = last_atari_heuristic();
+	if (move != -1)
+	{
+	play_move(I(move), J(move), color);
+	return move;
+	}*/
+	/*move = nakade_heuristic();
+	if (move != -1)
+	{
+	play_move(I(move), J(move), color);
+	}*/
+
+	/*int move = fill_the_board_heuristic();
+	if (move != -1)
+	{
+	play_move(I(move), J(move), color);
+	return move;
+	}*/
+	/*move = mogo_pattern_heuristic();
+	if (move != -1)
+	{
+	play_move(I(move), J(move), color);
+	return move;
+	}*/
+	/*move = capture_heuristic();
+	if (move != -1)
+	{
+	play_move(I(move), J(move), color);
+	return move;
+	}*/
+	int move = random_legal_move(color);
+
+	if (move != -1)
+	{
+		play_move(I(move), J(move), color);
+		return move;
+	}
+	//current_color = OTHER_COLOR(current_color);
+	return -1;
+}
+
+
+bool GoBoard::is_surrounded(int point, int color)
+{
+	if (board[point] != EMPTY)
+		return false;
+	int ai = I(point);
+	int aj = J(point);
+	for (int k = 0; k < 4; ++k) {
+		int bi = ai + deltai[k];
+		int bj = aj + deltaj[k];
+		if (!on_board(bi, bj))
+			continue;
+		if (board[POS(bi, bj)] != color)
+			return false;
+	}
+	return true;
+}
+float GoBoard::chinese_count()
+{
+	int black_score = 0, white_score = 0, eyes_result = 0;
+	for (int i = 1; i <= board_size*board_size; i++) {
+		if (board[i] == WHITE)
+		{
+			white_score++;
+			continue;
+		}
+		if (board[i] == BLACK)
+		{
+			black_score++;
+			continue;
+		}
+		if (is_surrounded(i, BLACK))
+			eyes_result++;
+		if (is_surrounded(i, WHITE))
+			eyes_result--;
+
+	}
+	return eyes_result + black_score - white_score - komi;
+}
+
+int GoBoard::autoRun_fill_board(int color)
+{
+	if (color != BLACK && color != WHITE) return -1;
+	int pass = 0;
+	int iterstep = step;
+	while (pass < 2)
+	{
+		int move = select_and_play(color);
+		++iterstep;
+		if (move == -1) pass++;
+		else pass = 0;
+
+		move = select_and_play(OTHER_COLOR(color));
+		++iterstep;
+		if (move == -1) pass++;
+		else pass = 0;
+		if (iterstep > 2 * board_size*board_size)
+		{
+			return -1;
+		}
+	}
+	return (chinese_count() > 0) ? 1 : 0;
+
+
+}
+
 int GoBoard::autoRun(int color)
 {
 	if (color != BLACK && color != WHITE) return 0;

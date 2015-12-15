@@ -33,7 +33,7 @@ void uctNode::addPos(uctNode* p)
 
 uctNode::~uctNode()
 {
-	for (int i = 0; i < nextMove.size(); ++i)
+	for (int i = 0; i <(int) nextMove.size(); ++i)
 	{
 		delete nextMove[i];
 	}

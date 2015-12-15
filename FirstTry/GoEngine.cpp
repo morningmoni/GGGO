@@ -46,7 +46,7 @@ uctNode* GoEngine::expand(uctNode* curNode, int* moves, int num_moves)
 	for (int i = 0; i < num_moves; ++i)
 	{
 		bool flag = true;
-		for (int j = 0; j<curNode->nextMove.size(); ++j)
+		for (int j = 0; j< (int)curNode->nextMove.size(); ++j)
 		{
 			if (moves[i] == curNode->nextMove[j]->pos)
 			{
@@ -69,7 +69,7 @@ void GoEngine::calScore(uctNode* tmp, int c)
 {
 	if (tmp->color == BLACK)
 	{
-		for (int ii = 0; ii < tmp->nextMove.size(); ++ii)
+		for (int ii = 0; ii <(int) tmp->nextMove.size(); ++ii)
 		{
 			uctNode *tt = tmp->nextMove[ii];
 			if (tt->play == 0)
@@ -82,7 +82,7 @@ void GoEngine::calScore(uctNode* tmp, int c)
 	}
 	else
 	{
-		for (int ii = 0; ii < tmp->nextMove.size(); ++ii)
+		for (int ii = 0; ii < (int)tmp->nextMove.size(); ++ii)
 		{
 			uctNode *tt = tmp->nextMove[ii];
 			if (tt->play == 0)
@@ -162,7 +162,7 @@ uctNode* GoEngine::treePolicy(uctNode* v, int games)
 
 int GoEngine::defaultPolicy(GoBoard * temp, int color)
 {
-	return temp->autoRun(color);
+	return temp->autoRun_fill_board  (color);
 }
 
 
@@ -219,6 +219,10 @@ DWORD WINAPI  GoEngine::ThreadFunc(LPVOID p)
 			break;
 		temp_engine->go_board->play_move(I(chosenNode->pos), J(chosenNode->pos), chosenNode->color);
 		reward = temp_engine->defaultPolicy(temp_engine->go_board, OTHER_COLOR(chosenNode->color));
+		if (reward == -1)
+			continue;
+		if (reward == 0)
+			reward = -1;
 		temp_engine->backup(chosenNode, reward);
 		++temp_engine->games;          //here is the source of the problem.
 		for (int ii = 0; ii<GoBoard::board_size*GoBoard::board_size; ++ii)
@@ -327,8 +331,8 @@ void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
 
 void GoEngine::aiMove(int *pos, int color, int *moves, int num_moves)
 {
-	aiMovePreCheck(pos, color, moves, num_moves);
-	if (*pos == -1)
+	//aiMovePreCheck(pos, color, moves, num_moves);
+	//if (*pos == -1)
 		uctSearch(pos, color, moves, num_moves);
 }
 
