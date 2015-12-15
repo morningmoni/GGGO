@@ -689,6 +689,12 @@ int GoBoard::autoRun(int color, bool* blackExist, bool* whiteExist)
 	int b = 0;
 	int w = 0;
 	calcGame(&b, &w, &bScore, &wScore);
+
+	//if (b - w > 0 && color == BLACK)
+	//	return 1;
+	//if (b - w < 0 && color == WHITE)
+	//	return 1;
+	//return 0;
 	return b - w;
 }
 

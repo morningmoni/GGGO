@@ -66,13 +66,13 @@ void GoEngine::calScore(uctNode* tmp)
 	{
 		uctNode *tt = tmp->nextMove[ii];
 		if (tt->play == 0)
-		{
 			tt->score = 0;
-			continue;
-		}
-		tt->score = (tt->playResult + 0.0) / tt->play;
+		else
+			tt->score = (tt->playResult + 0.0) / tt->play;
 
-		if(tt->amafPlay != 0)
+		if (tt->amafPlay == 0)
+			tt->amafScore = 0;
+		else
 			tt->amafScore = (tt->amafPlayResult + 0.0) / tt->amafPlay;
 	}
 
@@ -83,14 +83,15 @@ void GoEngine::calScore(uctNode* tmp)
 uctNode* GoEngine::bestchild(uctNode* curNode)
 {
 	calScore(curNode);
-	double alpha = MAXGAMES * 0.3 - curNode->nextMove[0]->play > 0 ? (MAXGAMES * 0.3 - curNode->nextMove[0]->play) / (MAXGAMES * 0.3) : 0;
+	double V = MAXGAMES * 0.1;
+	double alpha = V - curNode->nextMove[0]->play > 0 ? (V - curNode->nextMove[0]->play) / (V) : 0;
 	double tmpScore;
 	double maxScore = alpha * curNode->nextMove[0]->amafScore + (1 - alpha)*curNode->nextMove[0]->score;
 	uctNode* best = curNode->nextMove[0];
 	if(best->color == BLACK)
 		for (int i = 1; i < curNode->nextMove.size(); ++i)
 		{
-			alpha = MAXGAMES * 0.3 - curNode->nextMove[i]->play > 0 ? (MAXGAMES * 0.3 - curNode->nextMove[i]->play) / (MAXGAMES * 0.3) : 0;
+			alpha = V - curNode->nextMove[i]->play > 0 ? (V - curNode->nextMove[i]->play) / (V) : 0;
 			tmpScore = alpha * curNode->nextMove[i]->amafScore + (1 - alpha)*curNode->nextMove[i]->score;
 			if (tmpScore > maxScore)
 			{
@@ -101,7 +102,7 @@ uctNode* GoEngine::bestchild(uctNode* curNode)
 	else
 		for (int i = 1; i < curNode->nextMove.size(); ++i)
 		{
-			alpha = MAXGAMES * 0.3 - curNode->nextMove[i]->play > 0 ? (MAXGAMES * 0.3 - curNode->nextMove[i]->play) / (MAXGAMES * 0.3) : 0;
+			alpha = V - curNode->nextMove[i]->play > 0 ? (V - curNode->nextMove[i]->play) / (V) : 0;
 			tmpScore = alpha * curNode->nextMove[i]->amafScore + (1 - alpha)*curNode->nextMove[i]->score;
 			if (tmpScore < maxScore)
 			{
@@ -112,6 +113,28 @@ uctNode* GoEngine::bestchild(uctNode* curNode)
 
 	return best;
 }
+
+//uctNode* GoEngine::bestchild(uctNode* curNode)
+//{
+//	calScore(curNode);
+//	double alpha = MAXGAMES * 0.3 - curNode->nextMove[0]->play > 0 ? (MAXGAMES * 0.3 - curNode->nextMove[0]->play) / (MAXGAMES * 0.3) : 0;
+//	double tmpScore;
+//	double maxScore = alpha * curNode->nextMove[0]->amafScore + (1 - alpha)*curNode->nextMove[0]->score;
+//	uctNode* best = curNode->nextMove[0];
+//
+//	for (int i = 1; i < curNode->nextMove.size(); ++i)
+//	{
+//		alpha = MAXGAMES * 0.3 - curNode->nextMove[i]->play > 0 ? (MAXGAMES * 0.3 - curNode->nextMove[i]->play) / (MAXGAMES * 0.3) : 0;
+//		tmpScore = alpha * curNode->nextMove[i]->amafScore + (1 - alpha)*curNode->nextMove[i]->score;
+//		if (tmpScore > maxScore)
+//		{
+//			maxScore = tmpScore;
+//			best = curNode->nextMove[i];
+//		}
+//	}
+//
+//	return best;
+//}
 
 /*uctNode* GoEngine::treePolicy(GoBoard * temp_board)
 {
@@ -274,11 +297,11 @@ void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
 	int *visits = new int[GoBoard::board_size*GoBoard::board_size];
 	memset(votes, 0, sizeof(int)*GoBoard::board_size*GoBoard::board_size);
 	memset(visits, 0, sizeof(int)*GoBoard::board_size*GoBoard::board_size);
-	/*for (int i = 0; i < GoBoard::board_size*GoBoard::board_size; ++i)
+	for (int i = 0; i < GoBoard::board_size*GoBoard::board_size; ++i)
 	{
-		votes[i] = 0;
-		visits[i] = 0;
-	}*/
+		printf("%d",votes[i]);
+		//visits[i] = 0;
+	}
 	//if (roots[0]->nextMove.size()>0)		// exist nextmove
 	if (roots[0])
 	{
@@ -386,8 +409,8 @@ void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
 
 void GoEngine::aiMove(int *pos, int color, int *moves, int num_moves)
 {
-	aiMovePreCheck(pos, color, moves, num_moves);
-	if (*pos == -1)
+	//aiMovePreCheck(pos, color, moves, num_moves);
+	//if (*pos == -1)
 		uctSearch(pos, color, moves, num_moves);
 }
 

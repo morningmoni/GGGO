@@ -46,11 +46,13 @@ void uctNode::result(int r, bool* blackExist, bool* whiteExist)
 {
 	uctNode *p = this;
 	uctNode * tmp;
+	//int color = p->color;
 	while (p)
 	{
 		tmp = p;
 		++(p->play);
-		p->playResult += r;
+		//if (p->color == color)
+			p->playResult += r;
 		p = p->lastMove;
 		//new
 		if (!p)
@@ -58,24 +60,26 @@ void uctNode::result(int r, bool* blackExist, bool* whiteExist)
 		if (p->color == 1) //white
 		{
 			//child is black
-			for (int i = 1; i < p->nextMove.size(); ++i)
+			for (int i = 0; i < p->nextMove.size(); ++i)
 			{
 				if (blackExist[p->nextMove[i]->pos] && p->nextMove[i] != tmp)
 				{
-					++(p->amafPlay);
-					p->amafPlayResult += r;
+					++(p->nextMove[i]->amafPlay);
+					//if(p->nextMove[i]->color == color)
+						p->nextMove[i]->amafPlayResult += r;
 				}
 			}
 		}
 		else //black
 		{
 			//child is white
-			for (int i = 1; i < p->nextMove.size(); ++i)
+			for (int i = 0; i < p->nextMove.size(); ++i)
 			{
 				if (whiteExist[p->nextMove[i]->pos] && p->nextMove[i] != tmp)
 				{
-					++(p->amafPlay);
-					p->amafPlayResult += r;
+					++(p->nextMove[i]->amafPlay);
+					//if (p->nextMove[i]->color == color)
+						p->nextMove[i]->amafPlayResult += r;
 				}
 			}
 		}
