@@ -41,17 +41,17 @@ uctNode::~uctNode()
 		delete nextMove[i];
 	}
 }
-
+//playresult only +
 void uctNode::result(int r, bool* blackExist, bool* whiteExist)
 {
 	uctNode *p = this;
 	uctNode * tmp;
-	//int color = p->color;
+	int color = p->color;
 	while (p)
 	{
 		tmp = p;
 		++(p->play);
-		//if (p->color == color)
+		if (p->color == color)
 			p->playResult += r;
 		p = p->lastMove;
 		//new
@@ -65,7 +65,7 @@ void uctNode::result(int r, bool* blackExist, bool* whiteExist)
 				if (blackExist[p->nextMove[i]->pos] && p->nextMove[i] != tmp)
 				{
 					++(p->nextMove[i]->amafPlay);
-					//if(p->nextMove[i]->color == color)
+					if(p->nextMove[i]->color == color)
 						p->nextMove[i]->amafPlayResult += r;
 				}
 			}
@@ -78,7 +78,7 @@ void uctNode::result(int r, bool* blackExist, bool* whiteExist)
 				if (whiteExist[p->nextMove[i]->pos] && p->nextMove[i] != tmp)
 				{
 					++(p->nextMove[i]->amafPlay);
-					//if (p->nextMove[i]->color == color)
+					if (p->nextMove[i]->color == color)
 						p->nextMove[i]->amafPlayResult += r;
 				}
 			}
@@ -86,3 +86,45 @@ void uctNode::result(int r, bool* blackExist, bool* whiteExist)
 
 	}
 }
+
+//playResult can be -/+
+//void uctNode::result(int r, bool* blackExist, bool* whiteExist)
+//{
+//	uctNode *p = this;
+//	uctNode * tmp;
+//	while (p)
+//	{
+//		tmp = p;
+//		++(p->play);
+//		p->playResult += r;
+//		p = p->lastMove;
+//		//new
+//		if (!p)
+//			break;
+//		if (p->color == 1) //white
+//		{
+//			//child is black
+//			for (int i = 0; i < p->nextMove.size(); ++i)
+//			{
+//				if (blackExist[p->nextMove[i]->pos] && p->nextMove[i] != tmp)
+//				{
+//					++(p->nextMove[i]->amafPlay);
+//					p->nextMove[i]->amafPlayResult += r;
+//				}
+//			}
+//		}
+//		else //black
+//		{
+//			//child is white
+//			for (int i = 0; i < p->nextMove.size(); ++i)
+//			{
+//				if (whiteExist[p->nextMove[i]->pos] && p->nextMove[i] != tmp)
+//				{
+//					++(p->nextMove[i]->amafPlay);
+//					p->nextMove[i]->amafPlayResult += r;
+//				}
+//			}
+//		}
+//
+//	}
+//}
