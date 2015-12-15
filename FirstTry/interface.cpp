@@ -65,10 +65,6 @@ static int gtp_final_score(char *s);
 static int gtp_final_status_list(char *s);
 static int gtp_showboard(char *s);
 
-int lastMovei = -1;
-int lastMovej = -1;
-int rivalMovei = -1;
-int rivalMovej = -1;
 int step = 0;
 
 /* List of known commands. */
@@ -350,13 +346,13 @@ gtp_play(char *s)
 
 	if (i == -1 || j == -1)
 	{
-		rivalMovei = -1;
-		rivalMovej = -1;
+		main_engine->rivalMovei = -1;
+		main_engine->rivalMovej = -1;
 	}
 	else
 	{
-		rivalMovei = i;
-		rivalMovej = j;
+		main_engine->rivalMovei = i;
+		main_engine->rivalMovej = j;
 	}
 
 	main_engine->go_board->play_move(i, j, color);
@@ -382,13 +378,13 @@ gtp_genmove(char *s)
 
 	if (i == -1 || j == -1)
 	{
-		lastMovei = -1;
-		lastMovej = -1;
+		main_engine->lastMovei = -1;
+		main_engine->lastMovej = -1;
 	}
 	else
 	{
-		lastMovei = i;
-		lastMovej = j;
+		main_engine->lastMovei = i;
+		main_engine->lastMovej = j;
 	}
 	++step;
 	main_engine->go_board->play_move(i, j, color);

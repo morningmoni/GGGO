@@ -18,6 +18,10 @@ GoEngine::~GoEngine()
 
 GoEngine::GoEngine(GoBoard * b) {
 	go_board = b->copy_board();
+	rivalMovei = -1;
+	rivalMovej = -1;
+	lastMovei = -1;
+	lastMovej = -1;
 }
 
 GoEngine * GoEngine::copy_engine(GoBoard *b)
@@ -27,6 +31,8 @@ GoEngine * GoEngine::copy_engine(GoBoard *b)
 	temp_engine->move_color = move_color;
 	temp_engine->rivalMovei = rivalMovei;
 	temp_engine->rivalMovej = rivalMovej;
+	temp_engine->lastMovei = lastMovei;
+	temp_engine->lastMovej = lastMovej;
 	if (!root)
 		temp_engine->root = NULL;
 	else
@@ -246,17 +252,9 @@ void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
 	int *visits = new int[GoBoard::board_size*GoBoard::board_size];
 	memset(votes, 0, sizeof(int)*GoBoard::board_size*GoBoard::board_size);
 	memset(visits, 0, sizeof(int)*GoBoard::board_size*GoBoard::board_size);
-	/*for (int i = 0; i < GoBoard::board_size*GoBoard::board_size; ++i)
-	{
-		votes[i] = 0;
-		visits[i] = 0;
-	}*/
-	//if (roots[0]->nextMove.size()>0)		// exist nextmove
 	if (roots[0])
 	{
-
-		//find the votes for each nextmove to "votes" and add all the plays to "visits" 
-		for (int i = 0; i < THREAD_NUM; ++i)//find every best move for each root. and add play for every root->nextmove to visits
+		for (int i = 0; i < THREAD_NUM; ++i)
 		{
 			if (roots[i] == NULL || roots[i]->nextMove.size() == 0)
 				continue;
@@ -273,33 +271,6 @@ void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
 			}
 			votes[bestmove] += 1;
 		}
-		//If only one best move according to the votes, then chose it
-		//If there are more than one best moves according to the votes,for example, two nextmove both get two votes, then chose the most visited one.
-
-		/*ofstream outfile1("log3.txt", ios_base::app);
-		for (int i = 0; i < GoBoard::board_size*GoBoard::board_size; ++i)
-		{
-			outfile1 << i<<" ";
-			if (i / 10 == 0)
-				outfile1 << " ";
-		}
-		outfile1 << "\n\r";
-		for (int i = 0; i < GoBoard::board_size*GoBoard::board_size; ++i)
-		{
-			outfile1 << visits[i] << " ";
-			if (visits[i] / 10 == 0)
-				outfile1 << " ";
-		}
-		outfile1 << "\n\r";
-		for (int i = 0; i < GoBoard::board_size*GoBoard::board_size; ++i)
-		{
-			outfile1 << votes[i] << " ";
-			if (votes[i] / 10 == 0)
-				outfile1 << " ";
-		}
-		outfile1 << "\n\r";
-		outfile1 << "------------------\n\r";
-		outfile1.close();*/
 
 		int have_same_votes = 0;//0 represents false
 		int final_most_votes_move = -1;
@@ -482,13 +453,56 @@ void GoEngine::aiMovePreCheck(int *pos, int color, int *moves, int num_moves)
 	int storeko_i = go_board->ko_i;
 	int storeko_j = go_board->ko_j;
 	int other = OTHER_COLOR(color);
-	for (int i = max(0, rivalMovei - PRECHECKRANGE); i <= (GoBoard::board_size - 1, rivalMovei + PRECHECKRANGE); ++i)
+	for (int i = max(0, rivalMovei - PRECHECKRANGE); i <= min(GoBoard::board_size - 1, rivalMovei + PRECHECKRANGE); ++i)
 	{
-		for (int j = max(0, rivalMovej - PRECHECKRANGE); j <= (GoBoard::board_size - 1, rivalMovej + PRECHECKRANGE); ++j)
+		for (int j = max(0, rivalMovej - PRECHECKRANGE); j <= min(GoBoard::board_size - 1, rivalMovej + PRECHECKRANGE); ++j)
 		{
 			if (go_board->on_board(i, j) && go_board->get_board(i, j) == color)
 			{
-				if (go_board->checkLiberty(i, j) == 2)
+				if (go_board->checkLiberty(i, j) == 1)
+				{
+					int pos0 = POS(i, j);
+					int pos1 = pos0;
+					do{
+						int ai = I(pos1);
+						int aj = J(pos1);
+						for (int k = 0; k < 4; ++k)
+						{
+							int bi = ai + go_board->deltai[k];
+							int bj = aj + go_board->deltaj[k];
+							if (go_board->on_board(bi, bj) && go_board->get_board(bi, bj) == EMPTY && go_board->available(bi, bj, color))
+							{
+								go_board->play_move(bi, bj, color);
+								int tmpLiberty = go_board->checkLiberty(i, j);
+								if (tmpLiberty > 2)
+								{
+									*pos = POS(bi, bj);
+									for (int ii = 0; ii<GoBoard::board_size*GoBoard::board_size; ++ii)
+									{
+										go_board->board[ii] = store_board[ii];
+										go_board->next_stone[ii] = store_next_stone[ii];
+									}
+									go_board->step = storeStep;
+									go_board->ko_i = storeko_i;
+									go_board->ko_j = storeko_j;
+									delete[]store_board;
+									delete[]store_next_stone;
+									return;
+								}
+								for (int ii = 0; ii<GoBoard::board_size*GoBoard::board_size; ++ii)
+								{
+									go_board->board[ii] = store_board[ii];
+									go_board->next_stone[ii] = store_next_stone[ii];
+								}
+								go_board->step = storeStep;
+								go_board->ko_i = storeko_i;
+								go_board->ko_j = storeko_j;
+							}
+						}
+						pos1 = go_board->next_stone[pos1];
+					} while (pos1 != pos0);
+				}
+				else if (go_board->checkLiberty(i, j) == 2)
 				{
 					int pos0 = POS(i, j);
 					int pos1 = pos0;
@@ -514,49 +528,6 @@ void GoEngine::aiMovePreCheck(int *pos, int color, int *moves, int num_moves)
 									go_board->step = storeStep;
 									go_board->ko_i = storeko_i;
 									go_board->ko_j = storeko_j;
-									return;
-								}
-								for (int ii = 0; ii<GoBoard::board_size*GoBoard::board_size; ++ii)
-								{
-									go_board->board[ii] = store_board[ii];
-									go_board->next_stone[ii] = store_next_stone[ii];
-								}
-								go_board->step = storeStep;
-								go_board->ko_i = storeko_i;
-								go_board->ko_j = storeko_j;
-							}
-						}
-						pos1 = go_board->next_stone[pos1];
-					} while (pos1 != pos0);
-				}
-				else if (go_board->checkLiberty(i, j) == 1)
-				{
-					int pos0 = POS(i, j);
-					int pos1 = pos0;
-					do{
-						int ai = I(pos1);
-						int aj = J(pos1);
-						for (int k = 0; k < 4; ++k)
-						{
-							int bi = ai + go_board->deltai[k];
-							int bj = aj + go_board->deltaj[k];
-							if (go_board->on_board(bi, bj) && go_board->get_board(bi, bj) == EMPTY && go_board->available(bi, bj, color))
-							{
-								go_board->play_move(bi, bj, color);
-								int tmpLiberty = go_board->checkLiberty(i, j);
-								if (go_board->get_board(i, j) == EMPTY || tmpLiberty > 2)
-								{
-									*pos = POS(bi, bj);
-									for (int ii = 0; ii<GoBoard::board_size*GoBoard::board_size; ++ii)
-									{
-										go_board->board[ii] = store_board[ii];
-										go_board->next_stone[ii] = store_next_stone[ii];
-									}
-									go_board->step = storeStep;
-									go_board->ko_i = storeko_i;
-									go_board->ko_j = storeko_j;
-									delete[]store_board;
-									delete[]store_next_stone;
 									return;
 								}
 								for (int ii = 0; ii<GoBoard::board_size*GoBoard::board_size; ++ii)
@@ -601,28 +572,6 @@ void GoEngine::aiMovePreCheck(int *pos, int color, int *moves, int num_moves)
 					for (int k = 0; k < 2; ++k)
 					{
 						go_board->play_move(storei[k], storej[k], color);
-						/*for (int kkk = 0; kkk < 4; ++kkk)
-						{
-						int aai = storei[k] - deltai[kkk];
-						int aaj = storej[k] - deltaj[kkk];
-						if (aai==i || aaj==j)
-						continue;
-						if (on_board(aai, aaj) && get_board(aai, aaj) == other && !same_string(POS(i, j), POS(aai, aaj)) && checkLiberty(aai, aaj) == 1)
-						{
-						*pos = POS(storei[k], storej[k]);
-						for (int ii = 0; ii<board_size*board_size; ++ii)
-						{
-						board[ii] = store_board[ii];
-						next_stone[ii] = store_next_stone[ii];
-						}
-						step = storeStep;
-						ko_i = storeko_i;
-						ko_j = storeko_j;
-						delete[]store_board;
-						delete[]store_next_stone;
-						return;
-						}
-						}*/
 						go_board->play_move(storei[1 - k], storej[1 - k], other);
 						if (go_board->checkLiberty(i, j) <= 2)
 						{
@@ -652,6 +601,156 @@ void GoEngine::aiMovePreCheck(int *pos, int color, int *moves, int num_moves)
 			}
 		}
 	}
+
+	for (int i = max(0, lastMovei - PRECHECKRANGE); i <= min(GoBoard::board_size - 1, lastMovei + PRECHECKRANGE); ++i)
+	{
+		for (int j = max(0, lastMovej - PRECHECKRANGE); j <= min(GoBoard::board_size - 1, lastMovej + PRECHECKRANGE); ++j)
+		{
+			if (go_board->on_board(i, j) && go_board->get_board(i, j) == color)
+			{
+				if (go_board->checkLiberty(i, j) == 1)
+				{
+					int pos0 = POS(i, j);
+					int pos1 = pos0;
+					do{
+						int ai = I(pos1);
+						int aj = J(pos1);
+						for (int k = 0; k < 4; ++k)
+						{
+							int bi = ai + go_board->deltai[k];
+							int bj = aj + go_board->deltaj[k];
+							if (go_board->on_board(bi, bj) && go_board->get_board(bi, bj) == EMPTY && go_board->available(bi, bj, color))
+							{
+								go_board->play_move(bi, bj, color);
+								int tmpLiberty = go_board->checkLiberty(i, j);
+								if (tmpLiberty > 2)
+								{
+									*pos = POS(bi, bj);
+									for (int ii = 0; ii<GoBoard::board_size*GoBoard::board_size; ++ii)
+									{
+										go_board->board[ii] = store_board[ii];
+										go_board->next_stone[ii] = store_next_stone[ii];
+									}
+									go_board->step = storeStep;
+									go_board->ko_i = storeko_i;
+									go_board->ko_j = storeko_j;
+									delete[]store_board;
+									delete[]store_next_stone;
+									return;
+								}
+								for (int ii = 0; ii<GoBoard::board_size*GoBoard::board_size; ++ii)
+								{
+									go_board->board[ii] = store_board[ii];
+									go_board->next_stone[ii] = store_next_stone[ii];
+								}
+								go_board->step = storeStep;
+								go_board->ko_i = storeko_i;
+								go_board->ko_j = storeko_j;
+							}
+						}
+						pos1 = go_board->next_stone[pos1];
+					} while (pos1 != pos0);
+				}
+				else if (go_board->checkLiberty(i, j) == 2)
+				{
+					int pos0 = POS(i, j);
+					int pos1 = pos0;
+					do{
+						int ai = I(pos1);
+						int aj = J(pos1);
+						for (int k = 0; k < 4; ++k)
+						{
+							int bi = ai + go_board->deltai[k];
+							int bj = aj + go_board->deltaj[k];
+							if (go_board->on_board(bi, bj) && go_board->get_board(bi, bj) == EMPTY && go_board->available(bi, bj, color))
+							{
+								go_board->play_move(bi, bj, color);
+								int tmpLiberty = go_board->checkLiberty(bi, bj);
+								if (tmpLiberty > 3)
+								{
+									*pos = POS(bi, bj);
+									for (int ii = 0; ii<GoBoard::board_size*GoBoard::board_size; ++ii)
+									{
+										go_board->board[ii] = store_board[ii];
+										go_board->next_stone[ii] = store_next_stone[ii];
+									}
+									go_board->step = storeStep;
+									go_board->ko_i = storeko_i;
+									go_board->ko_j = storeko_j;
+									return;
+								}
+								for (int ii = 0; ii<GoBoard::board_size*GoBoard::board_size; ++ii)
+								{
+									go_board->board[ii] = store_board[ii];
+									go_board->next_stone[ii] = store_next_stone[ii];
+								}
+								go_board->step = storeStep;
+								go_board->ko_i = storeko_i;
+								go_board->ko_j = storeko_j;
+							}
+						}
+						pos1 = go_board->next_stone[pos1];
+					} while (pos1 != pos0);
+				}
+			}
+			if (go_board->on_board(i, j) && go_board->get_board(i, j) == other)
+			{
+				if (go_board->checkLiberty(i, j) == 2)
+				{
+					int storei[2];
+					int storej[2];
+					int kk = 0;
+					for (int k = 0; k< 4; ++k)
+					{
+						int bi = i + go_board->deltai[k];
+						int bj = j + go_board->deltaj[k];
+						if (go_board->on_board(bi, bj) && go_board->get_board(bi, bj) == EMPTY && go_board->available(bi, bj, color) && !go_board->suicideLike(bi, bj, color))
+						{
+							storei[kk] = bi;
+							storej[kk] = bj;
+							++kk;
+						}
+					}
+					if (kk == 1)
+					{
+						*pos = POS(storei[0], storej[0]);
+						return;
+					}
+					if (kk == 0)
+						continue;
+					for (int k = 0; k < 2; ++k)
+					{
+						go_board->play_move(storei[k], storej[k], color);
+						go_board->play_move(storei[1 - k], storej[1 - k], other);
+						if (go_board->checkLiberty(i, j) <= 2)
+						{
+							*pos = POS(storei[k], storej[k]);
+							for (int ii = 0; ii<GoBoard::board_size*GoBoard::board_size; ++ii)
+							{
+								go_board->board[ii] = store_board[ii];
+								go_board->next_stone[ii] = store_next_stone[ii];
+							}
+							go_board->step = storeStep;
+							go_board->ko_i = storeko_i;
+							go_board->ko_j = storeko_j;
+							delete[]store_board;
+							delete[]store_next_stone;
+							return;
+						}
+						for (int ii = 0; ii<GoBoard::board_size*GoBoard::board_size; ++ii)
+						{
+							go_board->board[ii] = store_board[ii];
+							go_board->next_stone[ii] = store_next_stone[ii];
+						}
+						go_board->step = storeStep;
+						go_board->ko_i = storeko_i;
+						go_board->ko_j = storeko_j;
+					}
+				}
+			}
+		}
+	}
+
 	delete[]store_board;
 	delete[]store_next_stone;
 
