@@ -11,6 +11,8 @@ float GoBoard::komi = 3.14;
 int GoBoard::final_status[MAX_BOARD * MAX_BOARD];
 int GoBoard::deltai[4] = {-1, 1, 0, 0};
 int GoBoard::deltaj[4] = {0, 0, -1, 1};
+int GoBoard::around_eight_i[8] = {-1,0,1,-1,1,-1,0,1};
+int GoBoard::around_eight_j[8] = { -1,-1,-1,0,0,1,1,1 };
 
 int GoBoard::pass_move(int i, int j) { return i == -1 && j == -1; }
 int GoBoard::POS(int i, int  j) { return ((i)* board_size + (j)); }
@@ -627,47 +629,51 @@ int GoBoard::random_legal_move(int color)
 	delete reasonable_moves;
 	return move;
 }
+int GoBoard::fill_the_board_heuristic(int color)
+{
+
+}
+
 
 int GoBoard::select_and_play(int color)
 {
-	/*int move = last_atari_heuristic();
-	if (move != -1)
+	/*int move = last_atari_heuristic();   //If the rival's last move is an atari, then try to find away to move out.(any point provide more liberty)
+	if (move != -1)			
 	{
 	play_move(I(move), J(move), color);
 	return move;
 	}*/
-	/*move = nakade_heuristic();
+	/*move = nakade_heuristic();		//not consider it at present
 	if (move != -1)
 	{
 	play_move(I(move), J(move), color);
 	}*/
 
-	/*int move = fill_the_board_heuristic();
+	int move = fill_the_board_heuristic();  // randomly select a move, if the move is empty and 8 around moves are all empty, then chose it.
+	if (move != -1)
+	{
+	play_move(I(move), J(move), color);
+	return move;
+	}
+	move = mogo_pattern_heuristic(rival_pos,color);  // check whether the opponent's last move's around_eight_moves match a pattern, if match ,chose it.
+	if (move != -1)
+	{
+	play_move(I(move), J(move), color);          
+	return move;
+	}
+	/*move = capture_heuristic();					//try to find a move that will capture the opponent
 	if (move != -1)
 	{
 	play_move(I(move), J(move), color);
 	return move;
 	}*/
-	/*move = mogo_pattern_heuristic();
-	if (move != -1)
-	{
-	play_move(I(move), J(move), color);
-	return move;
-	}*/
-	/*move = capture_heuristic();
-	if (move != -1)
-	{
-	play_move(I(move), J(move), color);
-	return move;
-	}*/
-	int move = random_legal_move(color);
+	move = random_legal_move(color);			//select a random  legal move
 
 	if (move != -1)
 	{
 		play_move(I(move), J(move), color);
 		return move;
 	}
-	//current_color = OTHER_COLOR(current_color);
 	return -1;
 }
 

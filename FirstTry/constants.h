@@ -3,7 +3,7 @@
 #define EMPTY 0
 #define WHITE 1
 #define BLACK 2
-#define THREAD_NUM 4
+#define THREAD_NUM 1
 
 #define MIN_BOARD 2
 #define MAX_BOARD 23

@@ -216,9 +216,14 @@ DWORD WINAPI  GoEngine::ThreadFunc(LPVOID p)
 	{
 		uctNode* chosenNode = temp_engine->treePolicy(root, temp_engine->games);//treePolicy's engine->games parameter no used?
 		if (!chosenNode)
+		{
+			//printf("zenme mei zhao dao a ?\n");
 			break;
+		}
 		temp_engine->go_board->play_move(I(chosenNode->pos), J(chosenNode->pos), chosenNode->color);
 		reward = temp_engine->defaultPolicy(temp_engine->go_board, OTHER_COLOR(chosenNode->color));
+		//printf("%d %d\n", reward, temp_engine->games);
+
 		if (reward == -1)
 			continue;
 		if (reward == 0)

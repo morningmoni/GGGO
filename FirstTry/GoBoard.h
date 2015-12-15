@@ -13,6 +13,8 @@ public:
 	int handicap;
 	static int deltai[4];
 	static int deltaj[4];
+	static int around_eight_i[8];
+	static int around_eight_j[8];
 	void show_game();
 	GoBoard();
 	~GoBoard();
@@ -52,4 +54,8 @@ public:
 	int random_legal_move(int color);
 	float chinese_count();
 	bool is_surrounded(int point, int color);
+	int  fill_the_board_heuristic(int color);
+	int fill_the_board_heuristic();
+	int mogo_pattern_heuristic(int rival_pos,int color);
+	bool match_go_pattern(int pos, int color);
 };
