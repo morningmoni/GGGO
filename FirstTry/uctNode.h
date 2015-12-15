@@ -12,8 +12,8 @@ public:
 	int color;
 	int pos;
 	bool opened;
-	float score;
-	float amafScore;
+	double score;
+	double amafScore;
 	std::vector<uctNode*> nextMove;
 	uctNode* lastMove;
 	uctNode(int p, int c, uctNode *last);

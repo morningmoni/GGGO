@@ -98,12 +98,12 @@ GoEngine * main_engine = NULL;
 int _tmain(int argc, char** argv)
 {
 	unsigned int random_seed = 1;
-	ofstream outfile1("log3.txt");
-	time_t m_time = time(NULL);
-	tm* t = localtime(&m_time);
-	outfile1 << "start at "<<t->tm_year+1900<<"-"<<t->tm_mon+1<<"-"<<t->tm_mday<<"-"<<t->tm_hour<<"-"<<t->tm_min<<"-"<<t->tm_sec;
-	outfile1 << "\r\n";
-	outfile1.close();
+	//ofstream outfile1("log3.txt");
+	//time_t m_time = time(NULL);
+	//tm* t = localtime(&m_time);
+	//outfile1 << "start at "<<t->tm_year+1900<<"-"<<t->tm_mon+1<<"-"<<t->tm_mday<<"-"<<t->tm_hour<<"-"<<t->tm_min<<"-"<<t->tm_sec;
+	//outfile1 << "\r\n";
+	//outfile1.close();
 	/* Optionally a random seed can be passed as an argument to the program. */
 	if (argc > 1)
 		sscanf(argv[1], "%u", &random_seed);
@@ -240,7 +240,7 @@ static int
 gtp_komi(char *s)
 {
 	if (sscanf(s, "%f", &GoBoard::komi) < 1)
-		return gtp_failure("komi not a float");
+		return gtp_failure("komi not a double");
 
 	return gtp_success("");
 }
@@ -339,11 +339,11 @@ gtp_play(char *s)
 	if (!gtp_decode_move(s, &color, &i, &j))
 		return gtp_failure("invalid color or coordinate");
 
-	ofstream outfile1("log3.txt", ios_base::app);
-	outfile1 << "rival  \t";
-	outfile1 << i << " " << j;
-	outfile1 << "\r\n";
-	outfile1.close();
+	//ofstream outfile1("log3.txt", ios_base::app);
+	//outfile1 << "rival  \t";
+	//outfile1 << i << " " << j;
+	//outfile1 << "\r\n";
+	//outfile1.close();
 
 	if (!main_engine->go_board->legal_move(i, j, color))
 		return gtp_failure("GGGO v2.0 finds a rival's illegal move");
@@ -374,11 +374,11 @@ gtp_genmove(char *s)
 
 	main_engine->generate_move(&i, &j, color);
 
-	ofstream outfile1("log3.txt", ios_base::app);
-	outfile1 << "self   \t";
-	outfile1 << i << " " << j;
-	outfile1 << "\r\n";
-	outfile1.close();
+	//ofstream outfile1("log3.txt", ios_base::app);
+	//outfile1 << "self   \t";
+	//outfile1 << i << " " << j;
+	//outfile1 << "\r\n";
+	//outfile1.close();
 
 	if (i == -1 || j == -1)
 	{
@@ -403,7 +403,7 @@ gtp_genmove(char *s)
 static int
 gtp_final_score(char *s)
 {
-	float score = GoBoard::komi;
+	double score = GoBoard::komi;
 	int i, j;
 
 	main_engine->go_board->compute_final_status();

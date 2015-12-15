@@ -7,7 +7,7 @@
 using namespace std;
 
 int GoBoard::board_size = 13;
-float GoBoard::komi = 3.14;
+double GoBoard::komi = 3.14;
 int GoBoard::final_status[MAX_BOARD * MAX_BOARD];
 int GoBoard::deltai[4] = {-1, 1, 0, 0};
 int GoBoard::deltaj[4] = {0, 0, -1, 1};

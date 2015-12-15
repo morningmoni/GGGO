@@ -83,14 +83,14 @@ void GoEngine::calScore(uctNode* tmp)
 uctNode* GoEngine::bestchild(uctNode* curNode)
 {
 	calScore(curNode);
-	float alpha = MAXGAMES * 0.3 - curNode->nextMove[0]->play > 0 ? MAXGAMES * 0.3 - curNode->nextMove[0]->play : 0;;
-	float tmpScore;
-	float maxScore = alpha * curNode->nextMove[0]->score + (1 - alpha)*curNode->nextMove[0]->amafScore;
+	double alpha = MAXGAMES * 0.3 - curNode->nextMove[0]->play > 0 ? (MAXGAMES * 0.3 - curNode->nextMove[0]->play) / (MAXGAMES * 0.3) : 0;
+	double tmpScore;
+	double maxScore = alpha * curNode->nextMove[0]->amafScore + (1 - alpha)*curNode->nextMove[0]->score;
 	uctNode* best = curNode->nextMove[0];
 	if(best->color == BLACK)
 		for (int i = 1; i < curNode->nextMove.size(); ++i)
 		{
-			alpha = MAXGAMES * 0.3 - curNode->nextMove[i]->play > 0 ? MAXGAMES * 0.3 - curNode->nextMove[i]->play : 0;
+			alpha = MAXGAMES * 0.3 - curNode->nextMove[i]->play > 0 ? (MAXGAMES * 0.3 - curNode->nextMove[i]->play) / (MAXGAMES * 0.3) : 0;
 			tmpScore = alpha * curNode->nextMove[i]->amafScore + (1 - alpha)*curNode->nextMove[i]->score;
 			if (tmpScore > maxScore)
 			{
@@ -101,7 +101,8 @@ uctNode* GoEngine::bestchild(uctNode* curNode)
 	else
 		for (int i = 1; i < curNode->nextMove.size(); ++i)
 		{
-			tmpScore = alpha * curNode->nextMove[i]->score + (1 - alpha)*curNode->nextMove[i]->amafScore;
+			alpha = MAXGAMES * 0.3 - curNode->nextMove[i]->play > 0 ? (MAXGAMES * 0.3 - curNode->nextMove[i]->play) / (MAXGAMES * 0.3) : 0;
+			tmpScore = alpha * curNode->nextMove[i]->amafScore + (1 - alpha)*curNode->nextMove[i]->score;
 			if (tmpScore < maxScore)
 			{
 				maxScore = tmpScore;
@@ -367,6 +368,7 @@ void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
 	{
 		*pos = -1;
 	}
+	printf("%d?\n", *pos);
 	delete []votes;
 	delete []visits;
 	

@@ -5,7 +5,7 @@ public:
 	int * board;
 	int * next_stone;
 	static int board_size;
-	static float komi;
+	static double komi;
 	static int final_status[MAX_BOARD * MAX_BOARD];
 	int ko_i;
 	int ko_j;
