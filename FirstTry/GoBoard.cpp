@@ -417,6 +417,7 @@ int GoBoard::checkLiberty(int i, int j)
 	int pos1 = pos;
 	int ans = 0;
 	do {
+		if (ans > 2) return 3;
 		ai = I(pos1);
 		aj = J(pos1);
 		for (int k = 0; k < 4; ++k)
@@ -705,24 +706,51 @@ int GoBoard::autoRun(int color, bool* blackExist, bool* whiteExist)
 	//return b - w;
 }
 
+inline unsigned long long GetCycleCount()
+{
+	__asm _emit 0x0F
+	__asm _emit 0x31
+}
 int GoBoard::random_legal_move(int color)
 {
+
+	//printf("start:%llu\n", (unsigned long long)GetCycleCount());
+	//unsigned long long start = (unsigned long long)GetCycleCount();
 	for (int i = 0; i < 100; ++i)
 	{
 		int pos = rand()*board_size*board_size / (RAND_MAX + 1);
 		if (available(I(pos), J(pos), color))
 			return pos;
 	}
-	int * reasonable_moves = new int[board_size*board_size];
-	int num = generate_legal_moves(reasonable_moves, color);
+	//unsigned long long middle = GetCycleCount() ;
+	//unsigned long long middle2 = GetCycleCount();
+	
+	//nsigned long long middle3 = GetCycleCount();
+	int  reasonable_moves[169];
+	
+	int num = 0;
+	for (int i = 0; i < board_size*board_size; ++i)
+	{
+		if (available(I(i), J(i), color))
+			reasonable_moves[num++] = i;
+
+	}
+
+	//unsigned long long middle4 = GetCycleCount();
+	//printf("%llu\n%llu\n%llu\n%llu\n%llu\n", start,middle, middle2, middle3, middle4);
+
+
+	//int num = generate_legal_moves(reasonable_moves, color);
 
 	if (num == 0)
 	{
-		delete reasonable_moves;
+		//delete reasonable_moves;
 		return -1;
 	}
 	int move = reasonable_moves[rand()*num / (RAND_MAX + 1)];
-	delete reasonable_moves;
+	//delete reasonable_moves;
+
+
 	return move;
 }
 

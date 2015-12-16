@@ -389,7 +389,6 @@ void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
 	{
 		*pos = -1;
 	}
-	printf("%d?\n", *pos);
 	delete []votes;
 	delete []visits;
 	
