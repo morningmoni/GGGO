@@ -371,7 +371,7 @@ gtp_genmove(char *s)
 
 	if (!gtp_decode_color(s, &color))
 		return gtp_failure("invalid color");
-
+	main_engine->fin_clock = clock();
 	main_engine->generate_move(&i, &j, color);
 
 	//ofstream outfile1("log3.txt", ios_base::app);

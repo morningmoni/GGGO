@@ -24,7 +24,7 @@
 #define TRYTIME 10
 #define MAXSTEP 60
 #define TIMELIMIT 2
-#define MAXGAMES 22500
+#define MAXGAMES 2250
 #define MONTECARLORANGE 13
 #define CLEARTIME 10
 #define VERSION_STRING "3.1"

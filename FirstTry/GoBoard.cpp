@@ -705,6 +705,176 @@ int GoBoard::autoRun(int color, bool* blackExist, bool* whiteExist)
 	//return b - w;
 }
 
+int GoBoard::random_legal_move(int color)
+{
+	for (int i = 0; i < 100; ++i)
+	{
+		int pos = rand()*board_size*board_size / (RAND_MAX + 1);
+		if (available(I(pos), J(pos), color))
+			return pos;
+	}
+	int * reasonable_moves = new int[board_size*board_size];
+	int num = generate_legal_moves(reasonable_moves, color);
+
+	if (num == 0)
+	{
+		delete reasonable_moves;
+		return -1;
+	}
+	int move = reasonable_moves[rand()*num / (RAND_MAX + 1)];
+	delete reasonable_moves;
+	return move;
+}
+
+
+int GoBoard::select_and_play(int color)
+{
+	/*int move = last_atari_heuristic(rival_pos,color);   //If the rival's last move is an atari, then try to find away to move out.(any point provide more liberty)
+	if (move != -1)
+	{
+	play_move(I(move), J(move), color);
+	return move;
+	}*/
+	/*move = nakade_heuristic();		//not consider it at present
+	if (move != -1)
+	{
+	play_move(I(move), J(move), color);
+	}*/
+
+	/*int move = fill_the_board_heuristic();  // randomly select a move, if the move is empty and 8 around moves are all empty, then chose it.
+	if (move != -1)
+	{
+	play_move(I(move), J(move), color);
+	return move;
+	}
+	move = mogo_pattern_heuristic(rival_pos,color);  // check whether the opponent's last move's around_eight_moves match a pattern, if match ,chose it.
+	if (move != -1)
+	{
+	play_move(I(move), J(move), color);
+	return move;
+	}
+	/*move = capture_heuristic();					//try to find a move that will capture the opponent
+	if (move != -1)
+	{
+	play_move(I(move), J(move), color);
+	return move;
+	}*/
+	int move = random_legal_move(color);			//select a random  legal move
+
+	if (move != -1)
+	{
+		play_move(I(move), J(move), color);
+		return move;
+	}
+	return -1;
+}
+
+
+bool GoBoard::is_surrounded(int point, int color)
+{
+	if (board[point] != EMPTY)
+		return false;
+	int ai = I(point);
+	int aj = J(point);
+	for (int k = 0; k < 4; ++k) {
+		int bi = ai + deltai[k];
+		int bj = aj + deltaj[k];
+		if (!on_board(bi, bj))
+			continue;
+		if (board[POS(bi, bj)] != color)
+			return false;
+	}
+	return true;
+}
+
+double GoBoard::chinese_count()
+{
+	int black_score = 0, white_score = 0, eyes_result = 0;
+	for (int i = 1; i <= board_size*board_size; i++) {
+		if (board[i] == WHITE)
+		{
+			white_score++;
+			continue;
+		}
+		if (board[i] == BLACK)
+		{
+			black_score++;
+			continue;
+		}
+		if (is_surrounded(i, BLACK))
+			eyes_result++;
+		if (is_surrounded(i, WHITE))
+			eyes_result--;
+
+	}
+	return eyes_result + black_score - white_score - komi;
+}
+
+int GoBoard::autoRun_fill_the_board(int color,bool* blackExist, bool* whiteExist)
+{
+	if (color != BLACK && color != WHITE) return -1;
+	int pass = 0;
+	int iterstep = step;
+	if (color == BLACK)
+	{
+		while (pass < 2)
+		{
+			++iterstep;
+			int move = select_and_play(color);
+			if (move != -1)
+			{
+				blackExist[move] = 1;
+				pass = 0;
+			}
+			else pass++;
+			move = select_and_play(OTHER_COLOR(color));
+			if (move != -1)
+			{
+				whiteExist[move] = 1;
+				pass = 0;
+			}
+			else pass++;
+
+			if (iterstep > board_size*board_size)
+				return -1;
+		}
+	}
+	if (color == WHITE)
+	{
+		while (pass < 2)
+		{
+			++iterstep;
+			int move = select_and_play(color);
+			if (move != -1)
+			{
+				whiteExist[move] = 1;
+				pass = 0;
+			}
+			else pass++;
+			move = select_and_play(OTHER_COLOR(color));
+			if (move != -1)
+			{
+				blackExist[move] = 1;
+				pass = 0;
+			}
+			else pass++;
+			if (iterstep > board_size*board_size)
+				return -1;
+		}
+	}
+	double count = chinese_count();
+
+	if (count > 0 && color == WHITE)
+	{
+		return 1;
+	}
+	if (count < 0 && color == BLACK)
+		return 1;
+	return 0;
+}
+
+
+
 void GoBoard::set_final_status_string(int pos, int status)
 {
 	int pos2 = pos;

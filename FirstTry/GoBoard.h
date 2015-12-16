@@ -37,6 +37,7 @@ public:
 	int generate_legal_moves(int* moves, int color);
 	int checkLiberty(int i, int j);
 	int autoRun(int color, bool* blackExist, bool* whiteExist);
+	int autoRun_fill_the_board(int color, bool* blackExist, bool* whiteExist);
 	bool available(int i, int j, int color);
 	void calcGame(int *b, int *w, int *bScore, int *wScore);
 	void compute_final_status(void);
@@ -47,4 +48,8 @@ public:
 	void set_final_status_string(int pos, int status);
 	int findALiberty(int i, int j);
 	int suicideLike(int i, int j, int color);
+	int select_and_play(int color);
+	int random_legal_move(int color);
+	double chinese_count();
+	bool is_surrounded(int point, int color);
 };

@@ -194,7 +194,7 @@ uctNode* GoEngine::treePolicy(uctNode* v, int games)
 int GoEngine::defaultPolicy(GoBoard * temp, int color, bool* blackExist, bool* whiteExist)
 {
 
-	return temp->autoRun(color, blackExist, whiteExist);
+	return temp->autoRun_fill_the_board (color, blackExist, whiteExist);
 }
 
 
@@ -244,7 +244,7 @@ DWORD WINAPI  GoEngine::ThreadFunc(LPVOID p)
 	uctNode* root = new uctNode(temp_engine->go_board->POS(temp_engine->rivalMovei, temp_engine->rivalMovej), OTHER_COLOR(temp_engine->move_color), NULL);
 	int reward = 0;
 
-	while (temp_engine->games < MAXGAMES)  ///visit engine-> games may cause problem, we need to add lock,  or just use time information rather than games information
+	while (/*temp_engine->games < MAXGAMES*/(clock()-temp_engine->fin_clock)<MAXTIME  )  ///visit engine-> games may cause problem, we need to add lock,  or just use time information rather than games information
 	{
 		uctNode* chosenNode = temp_engine->treePolicy(root, temp_engine->games);//treePolicy's engine->games parameter no used?
 		if (!chosenNode)
@@ -277,6 +277,7 @@ DWORD WINAPI  GoEngine::ThreadFunc(LPVOID p)
 		temp_engine->go_board->ko_j = engine->go_board->ko_j;
 		//go_board = store->copy_board();
 	}
+	printf("%d\n", temp_engine->games);
 	engine->roots[temp_p->thread_id] = root;
 	delete temp_engine;
 	return 0;
@@ -329,7 +330,7 @@ void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
 		{
 			outfile1 << i<<" ";
 			if (i / 10 == 0)
-				outfile1 << " ";
+				outfile1 << " ";2
 		}
 		outfile1 << "\n\r";
 		for (int i = 0; i < GoBoard::board_size*GoBoard::board_size; ++i)
