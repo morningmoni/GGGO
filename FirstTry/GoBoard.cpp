@@ -438,6 +438,34 @@ int GoBoard::checkLiberty(int i, int j)
 	return ans;
 }
 
+int GoBoard::check_one_Liberty(int i, int j)
+{
+	if (!on_board(i, j))
+		return -1;
+	int color = get_board(i, j);
+	if (color == EMPTY)
+		return -1;
+	int ai;
+	int aj;
+	int pos = POS(i, j);
+	int pos1 = pos;
+	int ans = 0;
+	do {
+		if (ans > 1) return 2;
+		ai = I(pos1);
+		aj = J(pos1);
+		for (int k = 0; k < 4; ++k)
+		{
+			int bi = ai + deltai[k];
+			int bj = aj + deltaj[k];
+			if (on_board(bi, bj) && get_board(bi, bj) == EMPTY)
+				++ans;
+		}
+		pos1 = next_stone[pos1];
+	} while (pos1 != pos);
+	return ans;
+}
+
 
 
 
@@ -458,7 +486,7 @@ bool GoBoard::available(int i, int j, int color)
 				if (on_board(bi, bj) && get_board(bi, bj) == OTHER_COLOR(color)) {
 					return true;
 				}
-				if (get_board(bi, bj) && get_board(bi, bj) == color && checkLiberty(bi, bj) == 1)
+				if (get_board(bi, bj) && get_board(bi, bj) == color && check_one_Liberty(bi, bj) == 1)
 				{
 					return true;
 				}
@@ -712,11 +740,7 @@ int GoBoard::autoRun(int color, bool* blackExist, bool* whiteExist)
 	//return b - w;
 }
 
-inline unsigned long long GetCycleCount()
-{
-	__asm _emit 0x0F
-	__asm _emit 0x31
-}
+
 int GoBoard::random_legal_move(int color)
 {
 

@@ -233,6 +233,7 @@ struct param {
 	GoEngine * go_engine;
 	int thread_id;
 };
+
 DWORD WINAPI  GoEngine::ThreadFunc(LPVOID p)
 {
 	int seed = GetCurrentThreadId()*time(NULL);
@@ -283,6 +284,7 @@ DWORD WINAPI  GoEngine::ThreadFunc(LPVOID p)
 	delete temp_engine;
 	return 0;
 }
+
 void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
 {
 	games = 0;
@@ -425,6 +427,7 @@ void GoEngine::generate_move(int *i, int *j, int color)
 	{
 		int move;
 		int rival_move = POS(rivalMovei, rivalMovej);
+		
 		/*move = go_board->is_heuristic_available(color, P);
 		if (move != -1) { *i = I(move); *j = J(move); return; }
 		move = go_board->is_xiaomu_available(color, rival_move);
