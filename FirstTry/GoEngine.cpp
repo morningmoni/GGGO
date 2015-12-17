@@ -275,6 +275,7 @@ DWORD WINAPI  GoEngine::ThreadFunc(LPVOID p)
 		temp_engine->go_board->step = engine->go_board->step;
 		temp_engine->go_board->ko_i = engine->go_board->ko_i;
 		temp_engine->go_board->ko_j = engine->go_board->ko_j;
+
 		//go_board = store->copy_board();
 	}
 	printf("%d\n", temp_engine->games);
@@ -420,6 +421,26 @@ void GoEngine::generate_move(int *i, int *j, int color)
 	int num_moves = 0;
 	int ai, aj;
 	int k;
+	if (go_board->step < MAX_BEGINING)
+	{
+		int move;
+		int rival_move = POS(rivalMovei, rivalMovej);
+		/*move = go_board->is_heuristic_available(color, P);
+		if (move != -1) { *i = I(move); *j = J(move); return; }
+		move = go_board->is_xiaomu_available(color, rival_move);
+		if (move != -1) { *i = I(move); *j = J(move); return; }
+		move = go_board->is_anti_kakari_available(color, rival_move);
+		if (move != -1) { *i = I(move); *j = J(move); return; }
+		move = go_board->is_anti_yijianjia_available(color, rival_move);
+		if (move != -1) { *i = I(move); *j = J(move); return; }
+		move = go_board->is_anti_dian33_available(color, rival_move);
+		if (move != -1) { *i = I(move); *j = J(move); return; }*/
+		move = go_board->is_star_available(color, rival_move);
+		if (move != -1) { *i = I(move); *j = J(move); return; }
+		/*move = go_board->is_kakari_available(color, rival_move);
+		if (move != -1) { *i = I(move); *j = J(move); return; }*/
+
+	}
 
 	memset(moves, 0, sizeof(moves));
 	for (ai = 0; ai < GoBoard::board_size; ai++)

@@ -13,6 +13,8 @@ public:
 	int handicap;
 	static int deltai[4];
 	static int deltaj[4];
+	static int diag_i[4];
+	static int diag_j[4];
 	void show_game();
 	GoBoard();
 	~GoBoard();
@@ -52,4 +54,7 @@ public:
 	int random_legal_move(int color);
 	double chinese_count();
 	bool is_surrounded(int point, int color);
+	int is_star_available(int color, int last_moves);
+	bool heavy_policy(int point, int  side);
+	bool is_virtual_eye(int point, int color);
 };

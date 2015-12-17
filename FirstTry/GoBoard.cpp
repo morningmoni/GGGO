@@ -11,6 +11,8 @@ double GoBoard::komi = 3.14;
 int GoBoard::final_status[MAX_BOARD * MAX_BOARD];
 int GoBoard::deltai[4] = {-1, 1, 0, 0};
 int GoBoard::deltaj[4] = {0, 0, -1, 1};
+int GoBoard::diag_i[4] = { -1,1,-1,1 };
+int GoBoard::diag_j[4] = { -1,-1,1,1 };
 
 int GoBoard::pass_move(int i, int j) { return i == -1 && j == -1; }
 int GoBoard::POS(int i, int  j) { return ((i)* board_size + (j)); }
@@ -91,6 +93,7 @@ GoBoard * GoBoard::copy_board()
 	temp->ko_i = ko_i;
 	temp->ko_j = ko_j;
 	temp->step = step;
+
 	temp->handicap = handicap;
 	return temp;
 }
@@ -108,6 +111,7 @@ int GoBoard::board_empty()
 void GoBoard::clear_board()
 {
 	memset(board, 0, sizeof(board));
+
 }
 
 
@@ -261,7 +265,7 @@ void GoBoard::play_move( int i, int j, int color)
 			int ai = i + deltai[k];
 			int aj = j + deltaj[k];
 			if (on_board(ai, aj) && get_board(ai, aj) == color)
-				remove_string(ai, aj);
+				 remove_string(ai, aj);
 		}
 		return;
 	}
@@ -272,7 +276,10 @@ void GoBoard::play_move( int i, int j, int color)
 		int ai = i + deltai[k];
 		int aj = j + deltaj[k];
 		if (on_board(ai, aj) && get_board(ai, aj) == OTHER_COLOR(color) && !has_additional_liberty(ai, aj, i, j))
-			captured_stones += remove_string(ai, aj);
+		{
+			int removed = remove_string(ai, aj);
+			captured_stones += removed;
+		}
 	}
 
 	/* Put down the new stone. Initially build a single stone string by
@@ -280,7 +287,6 @@ void GoBoard::play_move( int i, int j, int color)
 	*/
 	board[pos] = color;
 	next_stone[pos] = pos;
-
 	/* If we have friendly neighbor strings we need to link the strings
 	* together.
 	*/
@@ -716,7 +722,7 @@ int GoBoard::random_legal_move(int color)
 
 	//printf("start:%llu\n", (unsigned long long)GetCycleCount());
 	//unsigned long long start = (unsigned long long)GetCycleCount();
-	for (int i = 0; i < 100; ++i)
+	for (int i = 0; i < 95; ++i)
 	{
 		int pos = rand()*board_size*board_size / (RAND_MAX + 1);
 		if (available(I(pos), J(pos), color))
@@ -865,6 +871,7 @@ int GoBoard::autoRun_fill_the_board(int color,bool* blackExist, bool* whiteExist
 
 			if (iterstep > board_size*board_size)
 				return -1;
+
 		}
 	}
 	if (color == WHITE)
@@ -1043,5 +1050,3 @@ void GoBoard::place_fixed_handicap(int handicap)
 		play_move(high, mid, BLACK);   /* bottom edge */
 	}
 }
-
-
