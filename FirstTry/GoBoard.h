@@ -57,5 +57,5 @@ public:
 	int is_star_available(int color, int last_moves);
 	bool heavy_policy(int point, int  side);
 	bool is_virtual_eye(int point, int color);
-	int GoBoard::check_one_Liberty(int i, int j);
+	int check_one_Liberty(int i, int j);
 };

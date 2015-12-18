@@ -40,7 +40,7 @@ uctNode* GoEngine::expand(uctNode* curNode, int* moves, int num_moves)
 	for (int i = 0; i < num_moves; ++i)
 	{
 		bool flag = true;
-		for (int j = 0; j<curNode->nextMove.size(); ++j)
+		for (int j = 0; j< (int)curNode->nextMove.size(); ++j)
 		{
 			if (moves[i] == curNode->nextMove[j]->pos)
 			{
@@ -62,7 +62,7 @@ uctNode* GoEngine::expand(uctNode* curNode, int* moves, int num_moves)
 void GoEngine::calScore(uctNode* tmp)
 {
 
-	for (int ii = 0; ii < tmp->nextMove.size(); ++ii)
+	for (int ii = 0; ii < (int)tmp->nextMove.size(); ++ii)
 	{
 		uctNode *tt = tmp->nextMove[ii];
 		if (tt->play == 0)
@@ -123,7 +123,7 @@ uctNode* GoEngine::bestchild(uctNode* curNode)
 	double maxScore = alpha * curNode->nextMove[0]->amafScore + (1 - alpha)*curNode->nextMove[0]->score;
 	uctNode* best = curNode->nextMove[0];
 
-	for (int i = 1; i < curNode->nextMove.size(); ++i)
+	for (int i = 1; i < (int )curNode->nextMove.size(); ++i)
 	{
 		alpha = V - curNode->nextMove[i]->play > 0 ? (V - curNode->nextMove[i]->play) / (V) : 0;
 		tmpScore = alpha * curNode->nextMove[i]->amafScore + (1 - alpha)*curNode->nextMove[i]->score;
@@ -236,7 +236,7 @@ struct param {
 
 DWORD WINAPI  GoEngine::ThreadFunc(LPVOID p)
 {
-	int seed = GetCurrentThreadId()*time(NULL);
+	unsigned int seed = GetCurrentThreadId()*time(NULL);//no problem???
 	srand(seed);
 	param * temp_p = (param *)p;
 	GoEngine * engine = temp_p->go_engine;
