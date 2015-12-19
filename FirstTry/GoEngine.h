@@ -13,6 +13,9 @@ public:
 	int move_color;
 	int rivalMovei;
 	int rivalMovej;
+	int lastMovei;
+	int lastMovej;
+
 	uctNode *roots[THREAD_NUM];
 	uctNode *root;
 	clock_t fin_clock;

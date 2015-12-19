@@ -18,6 +18,10 @@ GoEngine::~GoEngine()
 
 GoEngine::GoEngine(GoBoard * b) {
 	go_board = b->copy_board();
+	rivalMovei = -1;
+	rivalMovej = -1;
+	lastMovei = -1;
+	lastMovej = -1;
 }
 
 GoEngine * GoEngine::copy_engine(GoBoard *b)
@@ -32,6 +36,10 @@ GoEngine * GoEngine::copy_engine(GoBoard *b)
 	else
 		temp_engine->root = root->copy();
 	temp_engine->fin_clock = fin_clock;
+	temp_engine->rivalMovei = rivalMovei;
+	temp_engine->rivalMovej = rivalMovej;
+	temp_engine->lastMovei = lastMovei;
+	temp_engine->lastMovej = lastMovej;
 	return temp_engine;
 }
 
@@ -418,7 +426,6 @@ void GoEngine::aiMove(int *pos, int color, int *moves, int num_moves)
 /* Generate a move. */
 void GoEngine::generate_move(int *i, int *j, int color)
 {
-	printf("%d\n", go_board->step);
 	move_color = color;
 	int moves[MAX_BOARD * MAX_BOARD];
 	int num_moves = 0;
