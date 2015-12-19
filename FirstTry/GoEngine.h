@@ -11,10 +11,6 @@ public:
 	~GoEngine();
 	int games;
 	int move_color;
-	int rivalMovei;
-	int rivalMovej;
-	int lastMovei;
-	int lastMovej;
 
 	uctNode *roots[THREAD_NUM];
 	uctNode *root;

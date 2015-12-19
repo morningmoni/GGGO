@@ -69,6 +69,8 @@ GoBoard::~GoBoard()
 
 GoBoard::GoBoard()
 {
+	rival_move_i = -1;
+	rival_move_j = -1;
 	int ko_i = -1;
 	int ko_j = -1;
 	int step = 0;
@@ -90,6 +92,8 @@ GoBoard * GoBoard::copy_board()
 		temp->board[i] = board[i];
 		temp->next_stone[i] = next_stone[i];
 	}
+	temp->rival_move_i = rival_move_i;
+	temp->rival_move_j = rival_move_j;
 	temp->ko_i = ko_i;
 	temp->ko_j = ko_j;
 	temp->step = step;
@@ -252,9 +256,12 @@ void GoBoard::play_move( int i, int j, int color)
 	/* Nothing more happens if the move was a pass. */
 	if (pass_move(i, j))
 	{
+		rival_move_i = -1;
+		rival_move_j = -1;
 		return;
 	}
-
+	rival_move_i = i;
+	rival_move_j = j;
 	/* If the move is a suicide we only need to remove the adjacent
 	* friendly stones.
 	*/

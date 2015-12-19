@@ -18,10 +18,6 @@ GoEngine::~GoEngine()
 
 GoEngine::GoEngine(GoBoard * b) {
 	go_board = b->copy_board();
-	rivalMovei = -1;
-	rivalMovej = -1;
-	lastMovei = -1;
-	lastMovej = -1;
 }
 
 GoEngine * GoEngine::copy_engine(GoBoard *b)
@@ -29,17 +25,11 @@ GoEngine * GoEngine::copy_engine(GoBoard *b)
 	GoEngine * temp_engine = new GoEngine(b);
 	temp_engine->games = games;
 	temp_engine->move_color = move_color;
-	temp_engine->rivalMovei = rivalMovei;
-	temp_engine->rivalMovej = rivalMovej;
 	if (!root)
 		temp_engine->root = NULL;
 	else
 		temp_engine->root = root->copy();
 	temp_engine->fin_clock = fin_clock;
-	temp_engine->rivalMovei = rivalMovei;
-	temp_engine->rivalMovej = rivalMovej;
-	temp_engine->lastMovei = lastMovei;
-	temp_engine->lastMovej = lastMovej;
 	return temp_engine;
 }
 
@@ -145,35 +135,7 @@ uctNode* GoEngine::bestchild(uctNode* curNode)
 	return best;
 }
 
-/*uctNode* GoEngine::treePolicy(GoBoard * temp_board)
-{
-uctNode* curNode = root;
 
-int* moves = new int[GoBoard::board_size*GoBoard::board_size]; //available moves
-int num_moves;	//available moves_count
-EnterCriticalSection(&cs);
-temp_board = go_board->copy_board();
-while (curNode->nextMove.size() > 0 || !curNode->lastMove) //while not leaf node, or is root
-{
-if (curNode->pos != POS(rivalMovei, rivalMovej))
-{
-go_board->play_move(I(curNode->pos), J(curNode->pos), curNode->color);
-}
-num_moves = go_board->generate_legal_moves(moves, OTHER_COLOR(curNode->color));
-if (num_moves != curNode->nextMove.size()) //not fully expanded
-{
-uctNode* tmp = expand(curNode, moves, num_moves);
-delete[]moves;
-LeaveCriticalSection(&cs);
-return tmp;
-}
-else
-curNode = bestchild(curNode, 1);
-}
-delete[]moves;
-LeaveCriticalSection(&cs);
-return curNode;
-}*/
 uctNode* GoEngine::treePolicy(uctNode* v, int games)
 {
 	uctNode* curNode = v;
@@ -181,7 +143,7 @@ uctNode* GoEngine::treePolicy(uctNode* v, int games)
 	int num_moves;	//available moves_count
 	while (curNode->nextMove.size() > 0 || !curNode->lastMove) //while not leaf node, or is root
 	{
-		if (curNode->pos != POS(rivalMovei, rivalMovej))
+		if (curNode->pos != POS(go_board->rival_move_i,go_board->rival_move_j))
 		{
 			go_board->play_move(I(curNode->pos), J(curNode->pos), curNode->color);
 		}
@@ -250,7 +212,7 @@ DWORD WINAPI  GoEngine::ThreadFunc(LPVOID p)
 	GoEngine * engine = temp_p->go_engine;
 	GoEngine * temp_engine = engine->copy_engine(engine->go_board); // remember to delete
 
-	uctNode* root = new uctNode(temp_engine->go_board->POS(temp_engine->rivalMovei, temp_engine->rivalMovej), OTHER_COLOR(temp_engine->move_color), NULL);
+	uctNode* root = new uctNode(temp_engine->go_board->POS(temp_engine->go_board->rival_move_i, temp_engine->go_board->rival_move_j), OTHER_COLOR(temp_engine->move_color), NULL);
 	int reward = 0;
 
 	while (/*temp_engine->games < MAXGAMES*/(clock()-temp_engine->fin_clock)<MAXTIME  )  ///visit engine-> games may cause problem, we need to add lock,  or just use time information rather than games information
@@ -284,6 +246,8 @@ DWORD WINAPI  GoEngine::ThreadFunc(LPVOID p)
 		temp_engine->go_board->step = engine->go_board->step;
 		temp_engine->go_board->ko_i = engine->go_board->ko_i;
 		temp_engine->go_board->ko_j = engine->go_board->ko_j;
+		temp_engine->go_board->rival_move_i = engine->go_board->rival_move_i;
+		temp_engine->go_board->rival_move_j = engine->go_board->rival_move_j;
 
 		//go_board = store->copy_board();
 	}
@@ -434,7 +398,7 @@ void GoEngine::generate_move(int *i, int *j, int color)
 	if (go_board->step < MAX_BEGINING)
 	{
 		int move;
-		int rival_move = POS(rivalMovei, rivalMovej);
+		int rival_move = POS(go_board->rival_move_i,go_board->rival_move_j );
 		
 		/*move = go_board->is_heuristic_available(color, P);
 		if (move != -1) { *i = I(move); *j = J(move); return; }
@@ -564,9 +528,9 @@ void GoEngine::aiMovePreCheck(int *pos, int color, int *moves, int num_moves)
 	int storeko_i = go_board->ko_i;
 	int storeko_j = go_board->ko_j;
 	int other = OTHER_COLOR(color);
-	for (int i = max(0, rivalMovei - PRECHECKRANGE); i <= (GoBoard::board_size - 1, rivalMovei + PRECHECKRANGE); ++i)
+	for (int i = max(0, go_board->rival_move_i - PRECHECKRANGE); i <= (GoBoard::board_size - 1, go_board->rival_move_i + PRECHECKRANGE); ++i)
 	{
-		for (int j = max(0, rivalMovej - PRECHECKRANGE); j <= (GoBoard::board_size - 1, rivalMovej + PRECHECKRANGE); ++j)
+		for (int j = max(0,go_board->rival_move_j- PRECHECKRANGE); j <= (GoBoard::board_size - 1, go_board->rival_move_j + PRECHECKRANGE); ++j)
 		{
 			if (go_board->on_board(i, j) && go_board->get_board(i, j) == color)
 			{

@@ -342,17 +342,6 @@ gtp_play(char *s)
 	if (!main_engine->go_board->legal_move(i, j, color))
 		return gtp_failure("GGGO v2.0 finds a rival's illegal move");
 
-	if (i == -1 || j == -1)
-	{
-		main_engine->rivalMovei = -1;
-		main_engine->rivalMovej = -1;
-	}
-	else
-	{
-		main_engine->rivalMovei = i;
-		main_engine->rivalMovej = j;
-	}
-
 	main_engine->go_board->play_move(i, j, color);
 	return gtp_success("");
 }
@@ -374,16 +363,7 @@ gtp_genmove(char *s)
 	//outfile1 << "\r\n";
 	//outfile1.close();
 
-	if (i == -1 || j == -1)
-	{
-		main_engine->lastMovei = -1;
-		main_engine->lastMovej = -1;
-	}
-	else
-	{
-		main_engine->lastMovei = i;
-		main_engine->lastMovej = j;
-	}
+
 	++main_engine->go_board->step;
 	main_engine->go_board->play_move(i, j, color);
 	gtp_start_response(GTP_SUCCESS);
