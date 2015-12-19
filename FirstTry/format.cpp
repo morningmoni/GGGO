@@ -109,7 +109,7 @@ bool GoBoard::is_virtual_eye(int point, int color)
 bool GoBoard::heavy_policy(int point, int  color)
 {
   if (is_virtual_eye(point, color)) return false;
-  if (!legal_move(I(point),J(point), color)) return false;
+  if (!available(I(point),J(point), color)) return false;
  // if (is_self_atari(point, color)) return false;
   //if (fast_ladder(point,color)) return false;  I don't understand what is fast_ladder, the implementation is below.
   //if (bad_self_atari(point,color)) return false; do not understand.... refer the source code.

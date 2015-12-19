@@ -418,6 +418,7 @@ void GoEngine::aiMove(int *pos, int color, int *moves, int num_moves)
 /* Generate a move. */
 void GoEngine::generate_move(int *i, int *j, int color)
 {
+	printf("%d\n", go_board->step);
 	move_color = color;
 	int moves[MAX_BOARD * MAX_BOARD];
 	int num_moves = 0;
