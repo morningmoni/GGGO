@@ -445,6 +445,40 @@ int GoBoard::checkLiberty(int i, int j)
 	return ans;
 }
 
+int GoBoard::find_one_Liberty_for_atari(int i, int j)
+{
+	if (!on_board(i, j))
+		return -1;
+	int color = get_board(i, j);
+	if (color == EMPTY)
+		return -1;
+	int ai;
+	int aj;
+	int pos = POS(i, j);
+	int pos1 = pos;
+	int liberty_point = -1;
+	int ans = 0;
+	do {
+		if (ans > 1) return -1;
+		ai = I(pos1);
+		aj = J(pos1);
+		for (int k = 0; k < 4; ++k)
+		{
+			int bi = ai + deltai[k];
+			int bj = aj + deltaj[k];
+			if (on_board(bi, bj) && get_board(bi, bj) == EMPTY)
+			{
+				++ans;
+				liberty_point = POS(bi, bj);
+			}
+		}
+		pos1 = next_stone[pos1];
+	} while (pos1 != pos);
+	if (ans == 1)
+		return liberty_point;
+	return -1;
+}
+
 int GoBoard::check_one_Liberty(int i, int j)
 {
 	if (!on_board(i, j))
@@ -794,12 +828,13 @@ int GoBoard::random_legal_move(int color)
 
 int GoBoard::select_and_play(int color)
 {
-	/*int move = last_atari_heuristic(rival_pos,color);   //If the rival's last move is an atari, then try to find away to move out.(any point provide more liberty)
+
+	int move = last_atari_heuristic(color);   //If the rival's last move is an atari, then try to find away to move out.(any point provide more liberty)
 	if (move != -1)
 	{
 	play_move(I(move), J(move), color);
 	return move;
-	}*/
+	}
 	/*move = nakade_heuristic();		//not consider it at present
 	if (move != -1)
 	{
@@ -824,7 +859,7 @@ int GoBoard::select_and_play(int color)
 	play_move(I(move), J(move), color);
 	return move;
 	}*/
-	int move = random_legal_move(color);			//select a random  legal move
+	move = random_legal_move(color);			//select a random  legal move
 
 	if (move != -1)
 	{
@@ -893,6 +928,7 @@ int GoBoard::autoRun_fill_the_board(int color,bool* blackExist, bool* whiteExist
 			}
 			else pass++;
 			move = select_and_play(OTHER_COLOR(color));
+
 			if (move != -1)
 			{
 				whiteExist[move] = 1;
@@ -911,6 +947,7 @@ int GoBoard::autoRun_fill_the_board(int color,bool* blackExist, bool* whiteExist
 		{
 			++iterstep;
 			int move = select_and_play(color);
+
 			if (move != -1)
 			{
 				whiteExist[move] = 1;
@@ -918,6 +955,7 @@ int GoBoard::autoRun_fill_the_board(int color,bool* blackExist, bool* whiteExist
 			}
 			else pass++;
 			move = select_and_play(OTHER_COLOR(color));
+
 			if (move != -1)
 			{
 				blackExist[move] = 1;

@@ -60,4 +60,6 @@ public:
 	bool heavy_policy(int point, int  side);
 	bool is_virtual_eye(int point, int color);
 	int check_one_Liberty(int i, int j);
+	int find_one_Liberty_for_atari(int i, int j);
+	int last_atari_heuristic( int color);
 };

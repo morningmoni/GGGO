@@ -259,6 +259,7 @@ DWORD WINAPI  GoEngine::ThreadFunc(LPVOID p)
 
 void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
 {
+
 	games = 0;
 	HANDLE handles[THREAD_NUM];
 	DWORD threadid[THREAD_NUM];
