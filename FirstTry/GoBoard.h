@@ -62,4 +62,6 @@ public:
 	int check_one_Liberty(int i, int j);
 	int find_one_Liberty_for_atari(int i, int j);
 	int last_atari_heuristic( int color);
+	void try_to_save_by_eat(int neighbor_i,int neighbor_j,int* saves, int &saves_number);
+	int find_one_Liberty_for_atari2(int bi, int bj, bool*checked);
 };

@@ -13,7 +13,6 @@ int GoBoard::deltai[4] = {-1, 1, 0, 0};
 int GoBoard::deltaj[4] = {0, 0, -1, 1};
 int GoBoard::diag_i[4] = { -1,1,-1,1 };
 int GoBoard::diag_j[4] = { -1,-1,1,1 };
-
 int GoBoard::pass_move(int i, int j) { return i == -1 && j == -1; }
 int GoBoard::POS(int i, int  j) { return ((i)* board_size + (j)); }
 int GoBoard::I(int pos) { return ((pos) / board_size); }
@@ -445,6 +444,40 @@ int GoBoard::checkLiberty(int i, int j)
 	return ans;
 }
 
+int GoBoard::find_one_Liberty_for_atari2(int i, int j, bool*checked)
+{
+	int color = get_board(i, j);
+	if (color == EMPTY)
+		return -1;
+	int ai;
+	int aj;
+	int pos = POS(i, j);
+	int pos1 = pos;
+	int liberty_point = -1;
+	int ans = 0;
+	do {
+		if (checked[pos1])
+			return -1;
+		checked[pos1] = true;
+		if (ans > 1) return -1;
+		ai = I(pos1);
+		aj = J(pos1);
+		for (int k = 0; k < 4; ++k)
+		{
+			int bi = ai + deltai[k];
+			int bj = aj + deltaj[k];
+			if (on_board(bi, bj) && get_board(bi, bj) == EMPTY)
+			{
+				++ans;
+				liberty_point = POS(bi, bj);
+			}
+		}
+		pos1 = next_stone[pos1];
+	} while (pos1 != pos);
+	if (ans == 1)
+		return liberty_point;
+	return -1;
+}
 int GoBoard::find_one_Liberty_for_atari(int i, int j)
 {
 	if (!on_board(i, j))
