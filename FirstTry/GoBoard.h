@@ -68,4 +68,10 @@ public:
 	int find_one_Liberty_for_atari2(int bi, int bj, bool*checked);
 	int  capture_heuristic(int color);
 	int gains_liberty(int move, int color);
+	int mogo_pattern_heuristic( int color);
+	bool match_mogo_pattern(int bi, int bj, int color);
+	bool match_hane(int bi, int bj, int color);
+	bool match_cut1(int bi, int bj, int color);
+	bool match_cut2(int bi, int bj, int color);
+	bool match_board_side(int bi, int bj, int color);
 };

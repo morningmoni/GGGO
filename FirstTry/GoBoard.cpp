@@ -13,8 +13,8 @@ int GoBoard::deltai[4] = {-1, 1, 0, 0};
 int GoBoard::deltaj[4] = {0, 0, -1, 1};
 int GoBoard::diag_i[4] = { -1,1,-1,1 };
 int GoBoard::diag_j[4] = { -1,-1,1,1 };
-int GoBoard::around_i[8] = {-1,0,1,-1,1,-1,0,1};
-int GoBoard::around_j[8] = {-1,-1,-1,0,0,1,1,1};
+int GoBoard::around_i[8] = {-1,0,1,1,1,0,-1,-1};
+int GoBoard::around_j[8] = {-1,-1,-1,0,1,1,1,0};
 int GoBoard::pass_move(int i, int j) { return i == -1 && j == -1; }
 int GoBoard::POS(int i, int  j) { return ((i)* board_size + (j)); }
 int GoBoard::I(int pos) { return ((pos) / board_size); }
@@ -881,13 +881,13 @@ int GoBoard::select_and_play(int color)
 	{
 	play_move(I(move), J(move), color);
 	return move;
-	}
-	move = mogo_pattern_heuristic(rival_pos,color);  // check whether the opponent's last move's around_eight_moves match a pattern, if match ,chose it.
+	}*/
+	move = mogo_pattern_heuristic(color);  // check whether the opponent's last move's around_eight_moves match a pattern, if match ,chose it.
 	if (move != -1)
 	{
 	play_move(I(move), J(move), color);
 	return move;
-	}*/
+	}
 	move = capture_heuristic( color);					//try to find a move that will capture the opponent
 	if (move != -1)
 	{
