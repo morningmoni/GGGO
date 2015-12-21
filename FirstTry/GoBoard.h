@@ -17,6 +17,8 @@ public:
 	static int deltaj[4];
 	static int diag_i[4];
 	static int diag_j[4];
+	static int around_i[8];
+	static int around_j[8];
 	void show_game();
 	GoBoard();
 	~GoBoard();
@@ -64,4 +66,6 @@ public:
 	int last_atari_heuristic( int color);
 	void try_to_save_by_eat(int neighbor_i,int neighbor_j,int* saves, int &saves_number);
 	int find_one_Liberty_for_atari2(int bi, int bj, bool*checked);
+	int  capture_heuristic(int color);
+	int gains_liberty(int move, int color);
 };

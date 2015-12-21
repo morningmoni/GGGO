@@ -13,6 +13,8 @@ int GoBoard::deltai[4] = {-1, 1, 0, 0};
 int GoBoard::deltaj[4] = {0, 0, -1, 1};
 int GoBoard::diag_i[4] = { -1,1,-1,1 };
 int GoBoard::diag_j[4] = { -1,-1,1,1 };
+int GoBoard::around_i[8] = {-1,0,1,-1,1,-1,0,1};
+int GoBoard::around_j[8] = {-1,-1,-1,0,0,1,1,1};
 int GoBoard::pass_move(int i, int j) { return i == -1 && j == -1; }
 int GoBoard::POS(int i, int  j) { return ((i)* board_size + (j)); }
 int GoBoard::I(int pos) { return ((pos) / board_size); }
@@ -885,13 +887,13 @@ int GoBoard::select_and_play(int color)
 	{
 	play_move(I(move), J(move), color);
 	return move;
-	}
-	/*move = capture_heuristic();					//try to find a move that will capture the opponent
+	}*/
+	move = capture_heuristic( color);					//try to find a move that will capture the opponent
 	if (move != -1)
 	{
 	play_move(I(move), J(move), color);
 	return move;
-	}*/
+	}
 	move = random_legal_move(color);			//select a random  legal move
 
 	if (move != -1)
