@@ -116,11 +116,255 @@ bool GoBoard::heavy_policy(int point, int  color)
   return true;
 }
 
+//int GoBoard::is_heuristic_available(int color, int rival_move)
+//{
+//	int other = OTHER_COLOR(color);
+//	int move = last_atari_heuristic(color);
+//	if (move != -1)
+//	{
+//		return move;
+//	}
+//
+//	if (rival_move != -1)
+//	{
+//
+//	}
+//}
+
+int GoBoard::is_kakari_available(int color, int rival_move)
+{
+	int star[4] = { 3 * board_size + 3, 3 * board_size + 9, 9 * board_size + 3, 9 * board_size + 9 }; //stars position
+	int other = OTHER_COLOR(color);
+	int kakari1, kakari2;
+
+	if (board[star[0]] == other)
+	{
+		kakari1 = POS(I(star[0]) + 2, J(star[0]) - 1);
+		if (board[kakari1] == EMPTY && heavy_policy(kakari1, color))
+			return kakari1;
+		kakari2 = POS(I(star[0]) - 1, J(star[0]) + 2);
+		if (board[kakari1] == other && board[kakari2] == EMPTY && heavy_policy(kakari2, color))
+			return kakari2;
+	}
+
+	if (board[star[1]] == other)
+	{
+		kakari1 = POS(I(star[1]) + 1, J(star[1]) + 2);
+		if (board[kakari1] == EMPTY && heavy_policy(kakari1, color))
+			return kakari1;
+		kakari2 = POS(I(star[1]) - 2, J(star[1]) - 1);
+		if (board[kakari1] == other && board[kakari2] == EMPTY && heavy_policy(kakari2, color))
+			return kakari2;
+	}
+
+	if (board[star[2]] == other)
+	{
+		kakari1 = POS(I(star[2]) + 2, J(star[2]) + 1);
+		if (board[kakari1] == EMPTY && heavy_policy(kakari1, color))
+			return kakari1;
+		kakari2 = POS(I(star[2]) - 1, J(star[2]) - 2);
+		if (board[kakari1] == other && board[kakari2] == EMPTY && heavy_policy(kakari2, color))
+			return kakari2;
+	}
+
+	if (board[star[3]] == other)
+	{
+		kakari1 = POS(I(star[3]) + 1, J(star[3]) - 2);
+		if (board[kakari1] == EMPTY && heavy_policy(kakari1, color))
+			return kakari1;
+		kakari2 = POS(I(star[3]) - 2, J(star[3]) + 1);
+		if (board[kakari1] == other && board[kakari2] == EMPTY && heavy_policy(kakari2, color))
+			return kakari2;
+	}
+	return -1;
+}
+
+int GoBoard::is_anti_dian33_available(int color, int rival_move)
+{
+	int star[4] = { 3 * board_size + 3, 3 * board_size + 9, 9 * board_size + 3, 9 * board_size + 9 }; //stars position
+	int other = OTHER_COLOR(color);
+	int dian, anti;
+
+	dian = POS(I(star[0]) - 1, J(star[0]) - 1);
+	anti = POS(I(star[0]) - 1, J(star[0]) + 0);
+	if (board[star[0]] == color && board[dian] == other && board[anti] == EMPTY && heavy_policy(anti, color))
+		return anti;
+
+	dian = POS(I(star[1]) + 1, J(star[1]) - 1);
+	anti = POS(I(star[1]) + 1, J(star[1]) + 0);
+	if (board[star[1]] == color && board[dian] == other && board[anti] == EMPTY && heavy_policy(anti, color))
+		return anti;
+
+	dian = POS(I(star[2]) - 1, J(star[2]) + 1);
+	anti = POS(I(star[2]) - 1, J(star[2]) + 0);
+	if (board[star[2]] == color && board[dian] == other && board[anti] == EMPTY && heavy_policy(anti, color))
+		return anti;
+
+	dian = POS(I(star[3]) + 1, J(star[3]) + 1);
+	anti = POS(I(star[3]) + 1, J(star[3]) + 0);
+	if (board[star[3]] == color && board[dian] == other && board[anti] == EMPTY && heavy_policy(anti, color))
+		return anti;
+	return -1;
+}
+
+int GoBoard::is_anti_yijianjia_available(int color, int rival_move)
+{
+	{
+		int star[4] = { 3 * board_size + 3, 3 * board_size + 9, 9 * board_size + 3, 9 * board_size + 9 }; //stars position
+		int kakari1, kakari2;
+		int other = OTHER_COLOR(color);
+
+		kakari1 = POS(I(star[0]) + 2, J(star[0]) - 0);
+		kakari2 = POS(I(star[0]) - 0, J(star[0]) + 2);
+		if (board[star[0]] == color)
+		{
+			if (board[kakari1] == other && board[kakari2] == EMPTY && heavy_policy(kakari2, color))
+				return kakari2;
+			if (board[kakari2] == other && board[kakari1] == EMPTY && heavy_policy(kakari1, color))
+				return kakari1;
+		}
+
+		kakari1 = POS(I(star[1]) - 2, J(star[1]) + 0);
+		kakari2 = POS(I(star[1]) - 0, J(star[1]) + 2);
+		if (board[star[1]] == color)
+		{
+			if (board[kakari1] == other && board[kakari2] == EMPTY && heavy_policy(kakari2, color))
+				return kakari2;
+			if (board[kakari2] == other && board[kakari1] == EMPTY && heavy_policy(kakari1, color))
+				return kakari1;
+		}
+
+		kakari1 = POS(I(star[2]) + 2, J(star[2]) + 0);
+		kakari2 = POS(I(star[2]) - 0, J(star[2]) - 2);
+		if (board[star[2]] == color)
+		{
+			if (board[kakari1] == other && board[kakari2] == EMPTY && heavy_policy(kakari2, color))
+				return kakari2;
+			if (board[kakari2] == other && board[kakari1] == EMPTY && heavy_policy(kakari1, color))
+				return kakari1;
+		}
+
+		kakari1 = POS(I(star[3]) - 2, J(star[3]) - 0);
+		kakari2 = POS(I(star[3]) - 0, J(star[3]) - 2);
+		if (board[star[3]] == color)
+		{
+			if (board[kakari1] == other && board[kakari2] == EMPTY && heavy_policy(kakari2, color))
+				return kakari2;
+			if (board[kakari2] == other && board[kakari1] == EMPTY && heavy_policy(kakari1, color))
+				return kakari1;
+		}
+		return -1;
+	}
+}
+
+int GoBoard::is_anti_kakari_available(int color, int rival_move)
+{
+	int star[4] = { 3 * board_size + 3, 3 * board_size + 9, 9 * board_size + 3, 9 * board_size + 9 }; //stars position
+	int kakari1, kakari2;
+	int other = OTHER_COLOR(color);
+
+	kakari1 = POS(I(star[0]) + 2, J(star[0]) - 1);
+	kakari2 = POS(I(star[0]) - 1, J(star[0]) + 2);
+	if (board[star[0]] == color)
+	{
+		if (board[kakari1] == other && board[kakari2] == EMPTY && heavy_policy(kakari2, color))
+			return kakari2;
+		if (board[kakari2] == other && board[kakari1] == EMPTY && heavy_policy(kakari1, color))
+			return kakari1;
+	}
+
+	kakari1 = POS(I(star[1]) + 1, J(star[1]) + 2);
+	kakari2 = POS(I(star[1]) - 2, J(star[1]) - 1);
+	if (board[star[1]] == color)
+	{
+		if (board[kakari1] == other && board[kakari2] == EMPTY && heavy_policy(kakari2, color))
+			return kakari2;
+		if (board[kakari2] == other && board[kakari1] == EMPTY && heavy_policy(kakari1, color))
+			return kakari1;
+	}
+
+	kakari1 = POS(I(star[2]) + 2, J(star[2]) + 1);
+	kakari2 = POS(I(star[2]) - 1, J(star[2]) - 2);
+	if (board[star[2]] == color)
+	{
+		if (board[kakari1] == other && board[kakari2] == EMPTY && heavy_policy(kakari2, color))
+			return kakari2;
+		if (board[kakari2] == other && board[kakari1] == EMPTY && heavy_policy(kakari1, color))
+			return kakari1;
+	}
+
+	kakari1 = POS(I(star[3]) + 1, J(star[3]) - 2);
+	kakari2 = POS(I(star[3]) - 2, J(star[3]) + 1);
+	if (board[star[3]] == color)
+	{
+		if (board[kakari1] == other && board[kakari2] == EMPTY && heavy_policy(kakari2, color))
+			return kakari2;
+		if (board[kakari2] == other && board[kakari1] == EMPTY && heavy_policy(kakari1, color))
+			return kakari1;
+	}
+	return -1;
+}
+
+int GoBoard::is_xiaomu_available(int color, int rival_move)
+{
+	int star[4] = { 3 * board_size + 3, 3 * board_size + 9, 9 * board_size + 3, 9 * board_size + 9 }; //stars position
+	int anti, xiaomu;
+	int other = OTHER_COLOR(color);
+
+	if (board[star[0]] != color)
+	{
+		anti = POS(I(star[0]) - 1, J(star[0]) + 1);
+		xiaomu = POS(I(star[0]), J(star[0]) - 1);
+		if (board[xiaomu] == other && board[anti] == EMPTY && heavy_policy(anti, color))
+			return anti;
+		anti = POS(I(star[0]) + 1, J(star[0]) - 1);
+		xiaomu = POS(I(star[0])-1, J(star[0]));
+		if (board[xiaomu] == other && board[anti] == EMPTY && heavy_policy(anti, color))
+			return anti;
+	}
+
+	if (board[star[1]] != color)
+	{
+		anti = POS(I(star[1]) + 1, J(star[1]) + 1);
+		xiaomu = POS(I(star[1]), J(star[1]) - 1);
+		if (board[xiaomu] == other && board[anti] == EMPTY && heavy_policy(anti, color))
+			return anti;
+		anti = POS(I(star[1]) - 1, J(star[1]) - 1);
+		xiaomu = POS(I(star[1]) + 1, J(star[1]));
+		if (board[xiaomu] == other && board[anti] == EMPTY && heavy_policy(anti, color))
+			return anti;
+	}
+
+	if (board[star[2]] != color)
+	{
+		anti = POS(I(star[2]) - 1, J(star[2]) - 1);
+		xiaomu = POS(I(star[2]), J(star[2]) + 1);
+		if (board[xiaomu] == other && board[anti] == EMPTY && heavy_policy(anti, color))
+			return anti;
+		anti = POS(I(star[2]) + 1, J(star[2]) + 1);
+		xiaomu = POS(I(star[2]) - 1, J(star[2]));
+		if (board[xiaomu] == other && board[anti] == EMPTY && heavy_policy(anti, color))
+			return anti;
+	}
+
+	if (board[star[3]] != color)
+	{
+		anti = POS(I(star[3]) - 1, J(star[3]) + 1);
+		xiaomu = POS(I(star[3]) + 1, J(star[3]));
+		if (board[xiaomu] == other && board[anti] == EMPTY && heavy_policy(anti, color))
+			return anti;
+		anti = POS(I(star[3]) + 1, J(star[3]) - 1);
+		xiaomu = POS(I(star[3]), J(star[3]) + 1);
+		if (board[xiaomu] == other && board[anti] == EMPTY && heavy_policy(anti, color))
+			return anti;
+	}
+	return -1;
+}
 
 int GoBoard::is_star_available (int color, int last_moves)
 {
-  int star[4] = {3*board_size+3,3*board_size+9,9*board_size+3,9*board_size+9}; //stars position
-  int mid[4] = {3*board_size+6,6*board_size+3,6*board_size+9,9*board_size+6}; //middle of stars
+	int star[4] = { 3 * board_size + 3, 3 * board_size + 9, 9 * board_size + 3, 9 * board_size + 9 }; //stars position
+	int mid[4] = { 3 * board_size + 6, 6 * board_size + 3, 6 * board_size + 9, 9 * board_size + 6 }; //middle of stars
 
   //Occupy Stars
   if (board[star[0]] == EMPTY && heavy_policy(star[0],color)) return star[0];

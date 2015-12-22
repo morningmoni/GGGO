@@ -382,11 +382,36 @@ void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
 
 void GoEngine::aiMove(int *pos, int color, int *moves, int num_moves)
 {
-	//aiMovePreCheck(pos, color, moves, num_moves);
-	//if (*pos == -1)
+	aiMovePreCheck(pos, color, moves, num_moves);
+	if (*pos == -1)
+		aiMoveStart(pos, color);
+	if (*pos == -1)
 		uctSearch(pos, color, moves, num_moves);
 }
 
+void GoEngine::aiMoveStart(int *pos, int color)
+{
+	if (go_board->step < MAX_BEGINING)
+	{
+		int move;
+		int rival_move = POS(go_board->rival_move_i, go_board->rival_move_j);
+
+		move = go_board->is_xiaomu_available(color, rival_move);
+		if (move != -1) { *pos = move; return; }
+		move = go_board->is_anti_kakari_available(color, rival_move);
+		if (move != -1) { *pos = move; return; }
+		move = go_board->is_anti_yijianjia_available(color, rival_move);
+		if (move != -1) { *pos = move; return; }
+		move = go_board->is_anti_dian33_available(color, rival_move);
+		if (move != -1) { *pos = move; return; }
+		move = go_board->is_star_available(color, rival_move);
+		if (move != -1) { *pos = move; return; }
+		move = go_board->is_kakari_available(color, rival_move);
+		if (move != -1) { *pos = move; return; }
+	}
+	*pos = -1;
+	return;
+}
 
 /* Generate a move. */
 void GoEngine::generate_move(int *i, int *j, int color)
@@ -396,27 +421,7 @@ void GoEngine::generate_move(int *i, int *j, int color)
 	int num_moves = 0;
 	int ai, aj;
 	int k;
-	if (go_board->step < MAX_BEGINING)
-	{
-		int move;
-		int rival_move = POS(go_board->rival_move_i,go_board->rival_move_j );
-		
-		/*move = go_board->is_heuristic_available(color, P);
-		if (move != -1) { *i = I(move); *j = J(move); return; }
-		move = go_board->is_xiaomu_available(color, rival_move);
-		if (move != -1) { *i = I(move); *j = J(move); return; }
-		move = go_board->is_anti_kakari_available(color, rival_move);
-		if (move != -1) { *i = I(move); *j = J(move); return; }
-		move = go_board->is_anti_yijianjia_available(color, rival_move);
-		if (move != -1) { *i = I(move); *j = J(move); return; }
-		move = go_board->is_anti_dian33_available(color, rival_move);
-		if (move != -1) { *i = I(move); *j = J(move); return; }*/
-		move = go_board->is_star_available(color, rival_move);
-		if (move != -1) { *i = I(move); *j = J(move); return; }
-		/*move = go_board->is_kakari_available(color, rival_move);
-		if (move != -1) { *i = I(move); *j = J(move); return; }*/
-
-	}
+	
 
 	memset(moves, 0, sizeof(moves));
 	for (ai = 0; ai < GoBoard::board_size; ai++)

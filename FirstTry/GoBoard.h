@@ -58,7 +58,15 @@ public:
 	int random_legal_move(int color);
 	double chinese_count();
 	bool is_surrounded(int point, int color);
+
+	//int is_heuristic_available(int color, int rival_move);
 	int is_star_available(int color, int last_moves);
+	int is_xiaomu_available(int color, int rival_move);
+	int is_anti_kakari_available(int color, int rival_move);
+	int is_anti_yijianjia_available(int color, int rival_move);
+	int is_anti_dian33_available(int color, int rival_move);
+	int is_kakari_available(int color, int rival_move);
+
 	bool heavy_policy(int point, int  side);
 	bool is_virtual_eye(int point, int color);
 	int check_one_Liberty(int i, int j);
@@ -66,7 +74,7 @@ public:
 	int last_atari_heuristic( int color);
 	void try_to_save_by_eat(int neighbor_i,int neighbor_j,int* saves, int &saves_number);
 	int find_one_Liberty_for_atari2(int bi, int bj, bool*checked);
-	int  capture_heuristic(int color);
+	int capture_heuristic(int color);
 	int gains_liberty(int move, int color);
 	int mogo_pattern_heuristic( int color);
 	bool match_mogo_pattern(int bi, int bj, int color);

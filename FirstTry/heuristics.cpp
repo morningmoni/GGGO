@@ -64,6 +64,7 @@ int GoBoard::gains_liberty(int move,int color)
 		return true;
 	return false;
 }
+
 int GoBoard::last_atari_heuristic( int color)
 {
 	if (rival_move_i == -1)
