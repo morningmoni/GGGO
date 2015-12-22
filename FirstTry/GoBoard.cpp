@@ -253,7 +253,7 @@ void GoBoard::play_move( int i, int j, int color)
 	/* Reset the ko point. */
 	ko_i = -1;
 	ko_j = -1;
-
+	++step;
 	/* Nothing more happens if the move was a pass. */
 	if (pass_move(i, j))
 	{

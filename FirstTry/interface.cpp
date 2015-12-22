@@ -364,7 +364,7 @@ gtp_genmove(char *s)
 	outfile1.close();
 
 
-	++main_engine->go_board->step;
+
 	main_engine->go_board->play_move(i, j, color);
 	gtp_start_response(GTP_SUCCESS);
 	gtp_mprintf("%m", i, j);
