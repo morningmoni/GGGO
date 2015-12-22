@@ -7,7 +7,7 @@
 using namespace std;
 
 int GoBoard::board_size = 13;
-double GoBoard::komi = 3.14;
+float GoBoard::komi = 3.14;
 int GoBoard::final_status[MAX_BOARD * MAX_BOARD];
 int GoBoard::deltai[4] = {-1, 1, 0, 0};
 int GoBoard::deltaj[4] = {0, 0, -1, 1};
@@ -721,100 +721,100 @@ void GoBoard::show_game()
 	outfile1.close();
 }
 
-int GoBoard::autoRun(int color, bool* blackExist, bool* whiteExist)
-{
-	if (color != BLACK && color != WHITE) return 0;
-	bool passBlack = false;
-	bool passWhite = false;
-	int iterstep = 0;
-	int maxStep = MAXSTEP - step > 10 ? MAXSTEP - step : 10;
-
-	if (color == BLACK)
-	{
-		while ((!passBlack || !passWhite) && iterstep < maxStep)
-		{
-			++iterstep;
-			bool flagBlack = true;
-			bool flagWhite = true;
-			for (int i = 0; i < TRYTIME; ++i)
-			{
-				int ppos = rand() % (board_size*board_size);
-				flagBlack = available(I(ppos), J(ppos), BLACK);
-				if (flagBlack)
-				{
-					play_move(I(ppos), J(ppos), BLACK);			
-					blackExist[ppos] = 1;			
-					break;
-				}
-			}
-			passBlack = !flagBlack;
-			for (int i = 0; i < TRYTIME; ++i)
-			{
-				int ppos = rand() % (board_size*board_size);
-				flagWhite = available(I(ppos), J(ppos), WHITE);
-				if (flagWhite)
-				{
-					play_move(I(ppos), J(ppos), WHITE);
-					whiteExist[ppos] = 1;
-					break;
-				}
-			}
-			passWhite = !flagWhite;
-		}
-	}
-	else
-	{
-		while ((!passBlack || !passWhite) && iterstep < maxStep)
-		{
-			++iterstep;
-			bool flagBlack = false;
-			bool flagWhite = false;
-			for (int i = 0; i < TRYTIME; ++i)
-			{
-				int ppos = rand() % (board_size*board_size);
-				flagWhite = available(I(ppos), J(ppos), WHITE);
-				if (flagWhite)
-				{
-					play_move(I(ppos), J(ppos), WHITE);
-					whiteExist[ppos] = 1;
-					break;
-				}
-			}
-			passWhite = !flagWhite;
-			for (int i = 0; i < TRYTIME; ++i)
-			{
-				int ppos = rand() % (board_size*board_size);
-				flagBlack = available(I(ppos), J(ppos), BLACK);
-				if (flagBlack)
-				{
-					play_move(I(ppos), J(ppos), BLACK);
-					blackExist[ppos] = 1;
-					break;
-				}
-			}
-			passBlack = !flagBlack;
-		}
-	}
-	int bScore = 0;
-	int wScore = 0;
-	int b = 0;
-	int w = 0;
-	calcGame(&b, &w, &bScore, &wScore);
-	//only +
-	if (b - w > 0 && color == WHITE)
-		return 1;
-	if (b - w < 0 && color == BLACK)
-		return 1;
-	return 0;
-	//+1 -1
-	//if (b - w > 0)
-	//	return 1;
-	//else if (b - w < 0)
-	//	return -1;
-	//return 0;
-	// origin
-	//return b - w;
-}
+//int GoBoard::autoRun(int color, bool* blackExist, bool* whiteExist)
+//{
+//	if (color != BLACK && color != WHITE) return 0;
+//	bool passBlack = false;
+//	bool passWhite = false;
+//	int iterstep = 0;
+//	int maxStep = MAXSTEP - step > 10 ? MAXSTEP - step : 10;
+//
+//	if (color == BLACK)
+//	{
+//		while ((!passBlack || !passWhite) && iterstep < maxStep)
+//		{
+//			++iterstep;
+//			bool flagBlack = true;
+//			bool flagWhite = true;
+//			for (int i = 0; i < TRYTIME; ++i)
+//			{
+//				int ppos = rand() % (board_size*board_size);
+//				flagBlack = available(I(ppos), J(ppos), BLACK);
+//				if (flagBlack)
+//				{
+//					play_move(I(ppos), J(ppos), BLACK);			
+//					blackExist[ppos] = 1;			
+//					break;
+//				}
+//			}
+//			passBlack = !flagBlack;
+//			for (int i = 0; i < TRYTIME; ++i)
+//			{
+//				int ppos = rand() % (board_size*board_size);
+//				flagWhite = available(I(ppos), J(ppos), WHITE);
+//				if (flagWhite)
+//				{
+//					play_move(I(ppos), J(ppos), WHITE);
+//					whiteExist[ppos] = 1;
+//					break;
+//				}
+//			}
+//			passWhite = !flagWhite;
+//		}
+//	}
+//	else
+//	{
+//		while ((!passBlack || !passWhite) && iterstep < maxStep)
+//		{
+//			++iterstep;
+//			bool flagBlack = false;
+//			bool flagWhite = false;
+//			for (int i = 0; i < TRYTIME; ++i)
+//			{
+//				int ppos = rand() % (board_size*board_size);
+//				flagWhite = available(I(ppos), J(ppos), WHITE);
+//				if (flagWhite)
+//				{
+//					play_move(I(ppos), J(ppos), WHITE);
+//					whiteExist[ppos] = 1;
+//					break;
+//				}
+//			}
+//			passWhite = !flagWhite;
+//			for (int i = 0; i < TRYTIME; ++i)
+//			{
+//				int ppos = rand() % (board_size*board_size);
+//				flagBlack = available(I(ppos), J(ppos), BLACK);
+//				if (flagBlack)
+//				{
+//					play_move(I(ppos), J(ppos), BLACK);
+//					blackExist[ppos] = 1;
+//					break;
+//				}
+//			}
+//			passBlack = !flagBlack;
+//		}
+//	}
+//	int bScore = 0;
+//	int wScore = 0;
+//	int b = 0;
+//	int w = 0;
+//	calcGame(&b, &w, &bScore, &wScore);
+//	//only +
+//	if (b - w > 0 && color == WHITE)
+//		return 1;
+//	if (b - w < 0 && color == BLACK)
+//		return 1;
+//	return 0;
+//	//+1 -1
+//	//if (b - w > 0)
+//	//	return 1;
+//	//else if (b - w < 0)
+//	//	return -1;
+//	//return 0;
+//	// origin
+//	//return b - w;
+//}
 
 
 int GoBoard::random_legal_move(int color)
@@ -865,10 +865,10 @@ int GoBoard::select_and_play(int color)
 {
 
 	int move = last_atari_heuristic(color);   //If the rival's last move is an atari, then try to find away to move out.(any point provide more liberty)
-	if (move != -1)
+	if (move != -1 && heavy_policy(move, color))
 	{
-	play_move(I(move), J(move), color);
-	return move;
+		play_move(I(move), J(move), color);
+		return move;
 	}
 	/*move = nakade_heuristic();		//not consider it at present
 	if (move != -1)
@@ -882,25 +882,28 @@ int GoBoard::select_and_play(int color)
 	play_move(I(move), J(move), color);
 	return move;
 	}*/
-	move = mogo_pattern_heuristic(color);  // check whether the opponent's last move's around_eight_moves match a pattern, if match ,chose it.
-	if (move != -1)
-	{
-	play_move(I(move), J(move), color);
-	return move;
-	}
-	move = capture_heuristic( color);					//try to find a move that will capture the opponent
-	if (move != -1)
-	{
-	play_move(I(move), J(move), color);
-	return move;
-	}
-	move = random_legal_move(color);			//select a random  legal move
 
+	move = mogo_pattern_heuristic(color);  // check whether the opponent's last move's around_eight_moves match a pattern, if match ,chose it.
+	if (move != -1 && heavy_policy(move, color))
+	{
+		play_move(I(move), J(move), color);
+		return move;
+	}
+
+	move = capture_heuristic( color);					//try to find a move that will capture the opponent
+	if (move != -1 && heavy_policy(move, color))
+	{
+		play_move(I(move), J(move), color);
+		return move;
+	}
+
+	move = random_legal_move(color);			//select a random  legal move
 	if (move != -1)
 	{
 		play_move(I(move), J(move), color);
 		return move;
 	}
+
 	return -1;
 }
 

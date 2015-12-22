@@ -5,7 +5,6 @@
 #include <windows.h>
 #include "algorithm"
 #include <vector>
-#include "publicFunc.h"
 #include <fstream>
 #include "GoBoard.h"
 using namespace std;
@@ -231,10 +230,7 @@ DWORD WINAPI  GoEngine::ThreadFunc(LPVOID p)
 		}
 		reward = temp_engine->defaultPolicy(temp_engine->go_board, OTHER_COLOR(chosenNode->color), blackExist, whiteExist);
 		temp_engine->backup(chosenNode, reward, blackExist, whiteExist);
-		//for (int ii = 0; ii < GoBoard::board_size*GoBoard::board_size; ++ii)
-		//{
-		//	printf("%d",blackExist[ii]);
-		//}
+
 		delete blackExist;
 		delete whiteExist;
 		++temp_engine->games;          //here is the source of the problem.
@@ -300,31 +296,6 @@ void GoEngine::uctSearch(int *pos, int color, int *moves, int num_moves)
 		}
 		//If only one best move according to the votes, then chose it
 		//If there are more than one best moves according to the votes,for example, two nextmove both get two votes, then chose the most visited one.
-
-		/*ofstream outfile1("log3.txt", ios_base::app);
-		for (int i = 0; i < GoBoard::board_size*GoBoard::board_size; ++i)
-		{
-			outfile1 << i<<" ";
-			if (i / 10 == 0)
-				outfile1 << " ";2
-		}
-		outfile1 << "\n\r";
-		for (int i = 0; i < GoBoard::board_size*GoBoard::board_size; ++i)
-		{
-			outfile1 << visits[i] << " ";
-			if (visits[i] / 10 == 0)
-				outfile1 << " ";
-		}
-		outfile1 << "\n\r";
-		for (int i = 0; i < GoBoard::board_size*GoBoard::board_size; ++i)
-		{
-			outfile1 << votes[i] << " ";
-			if (votes[i] / 10 == 0)
-				outfile1 << " ";
-		}
-		outfile1 << "\n\r";
-		outfile1 << "------------------\n\r";
-		outfile1.close();*/
 
 		int have_same_votes = 0;//0 represents false
 		int final_most_votes_move = -1;

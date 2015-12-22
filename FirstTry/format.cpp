@@ -1,4 +1,5 @@
 #include "GoBoard.h"
+#include <queue>
 /*bool Goban::fast_ladder(int point, bool color) const
 {
   if (total_liberties(point, color, 0) != 2) return false;
@@ -75,11 +76,36 @@ bool GoBoard::bad_self_atari(int point, bool color) const
 }
 */
 
-/*bool GoBoard::is_self_atari(int point, int color) //  is_self_atari that is , add this point, the group of the move will be in atari(only one liberty)
+bool GoBoard::is_self_atari(int point, int color) //  is_self_atari that is , add this point, the group of the move will be in atari(only one liberty)
 {
+	std::queue<int> q;
+	q.push(point);
+	int lib = 0;
+	int* visited = new int[board_size * board_size];
+	int cur;
+	
+	while (!q.empty())
+	{
+		cur = q.front();
+		visited[cur] = 1;
+		q.pop();
+		for (int k = 0; k < 4; ++k)
+		{
+			int ai = I(cur) + deltai[k];
+			int aj = J(cur) + deltaj[k];
+			if (on_board(ai, aj) && !visited[POS(ai, aj)])
+			{
+				if (get_board(ai, aj) == color)
+					q.push(POS(ai, aj));
+				else if (get_board(ai, aj) == EMPTY)
+					++lib;
+			}
 
-  return (total_liberties(point, color, 0, 1) == 1);
-}*/
+		}
+	}
+	delete visited;
+	return lib == 1;
+}
 
 
 bool GoBoard::is_virtual_eye(int point, int color) 
@@ -110,7 +136,7 @@ bool GoBoard::heavy_policy(int point, int  color)
 {
   if (is_virtual_eye(point, color)) return false;
   if (!available(I(point),J(point), color)) return false;
- // if (is_self_atari(point, color)) return false;
+  if (is_self_atari(point, color)) return false;
   //if (fast_ladder(point,color)) return false;  I don't understand what is fast_ladder, the implementation is below.
   //if (bad_self_atari(point,color)) return false; do not understand.... refer the source code.
   return true;
