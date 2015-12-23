@@ -98,12 +98,15 @@ bool GoBoard::is_self_atari(int point, int color) //  is_self_atari that is , ad
 				if (get_board(ai, aj) == color)
 					q.push(POS(ai, aj));
 				else if (get_board(ai, aj) == EMPTY)
+				{
 					++lib;
+					visited[POS(ai, aj)] = 1;
+				}
 			}
 
 		}
 	}
-	delete visited;
+	delete []visited;
 	return lib == 1;
 }
 

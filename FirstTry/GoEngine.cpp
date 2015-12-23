@@ -231,8 +231,8 @@ DWORD WINAPI  GoEngine::ThreadFunc(LPVOID p)
 		reward = temp_engine->defaultPolicy(temp_engine->go_board, OTHER_COLOR(chosenNode->color), blackExist, whiteExist);
 		temp_engine->backup(chosenNode, reward, blackExist, whiteExist);
 
-		delete blackExist;
-		delete whiteExist;
+		delete []blackExist;
+		delete []whiteExist;
 		++temp_engine->games;          //here is the source of the problem.
 		for (int ii = 0; ii < GoBoard::board_size*GoBoard::board_size; ++ii)
 		{

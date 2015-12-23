@@ -358,6 +358,7 @@ bool GoBoard::match_hane(int i, int j, int color)
 		}
 
 	}
+	return false; //?
 }
 bool GoBoard::match_cut1(int i, int j, int color) //symmetric
 {
@@ -448,7 +449,7 @@ bool GoBoard::match_cut2(int i, int j, int color) //symmetric
 }
 bool GoBoard::match_board_side(int i, int j, int color)
 {
-	int start;
+	int start = 0;
 	if (i == 0)
 		start = 2;
 	if (i == board_size - 1)
