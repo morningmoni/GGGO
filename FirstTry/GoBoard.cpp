@@ -818,44 +818,55 @@ void GoBoard::show_game()
 int GoBoard::random_legal_move(int color)
 {
 
-	//printf("start:%llu\n", (unsigned long long)GetCycleCount());
-	//unsigned long long start = (unsigned long long)GetCycleCount();
-	for (int i = 0; i < 95; ++i)
-	{
-		int pos = rand()*board_size*board_size / (RAND_MAX + 1);
-		if (available(I(pos), J(pos), color))
-			return pos;
-	}
-	//unsigned long long middle = GetCycleCount() ;
-	//unsigned long long middle2 = GetCycleCount();
-	
-	//nsigned long long middle3 = GetCycleCount();
-	int  reasonable_moves[169];
-	
-	int num = 0;
-	for (int i = 0; i < board_size*board_size; ++i)
+	int pos = rand()*board_size*board_size / (RAND_MAX + 1);
+
+	for (int i = pos; i < board_size*board_size; ++i)
 	{
 		if (available(I(i), J(i), color))
-			reasonable_moves[num++] = i;
-
+			return i;
 	}
-
-	//unsigned long long middle4 = GetCycleCount();
-	//printf("%llu\n%llu\n%llu\n%llu\n%llu\n", start,middle, middle2, middle3, middle4);
-
-
-	//int num = generate_legal_moves(reasonable_moves, color);
-
-	if (num == 0)
+	for (int i = 0; i < pos; ++i)
 	{
-		//delete reasonable_moves;
-		return -1;
+		if (available(I(i), J(i), color))
+			return i;
 	}
-	int move = reasonable_moves[rand()*num / (RAND_MAX + 1)];
-	//delete reasonable_moves;
+	return -1;
+	//for (int i = 0; i < 95; ++i)
+	//{
+	//	int pos = rand()*board_size*board_size / (RAND_MAX + 1);
+	//	if (available(I(pos), J(pos), color))
+	//		return pos;
+	//}
+	////unsigned long long middle = GetCycleCount() ;
+	////unsigned long long middle2 = GetCycleCount();
+	//
+	////nsigned long long middle3 = GetCycleCount();
+	//int  reasonable_moves[169];
+	//
+	//int num = 0;
+	//for (int i = 0; i < board_size*board_size; ++i)
+	//{
+	//	if (available(I(i), J(i), color))
+	//		reasonable_moves[num++] = i;
+
+	//}
+
+	////unsigned long long middle4 = GetCycleCount();
+	////printf("%llu\n%llu\n%llu\n%llu\n%llu\n", start,middle, middle2, middle3, middle4);
 
 
-	return move;
+	////int num = generate_legal_moves(reasonable_moves, color);
+
+	//if (num == 0)
+	//{
+	//	//delete reasonable_moves;
+	//	return -1;
+	//}
+	//int move = reasonable_moves[rand()*num / (RAND_MAX + 1)];
+	////delete reasonable_moves;
+
+
+	//return move;
 }
 
 
@@ -863,12 +874,12 @@ int GoBoard::select_and_play(int color)
 {
 
 
-	int move = last_atari_heuristic(color);   //If the rival's last move is an atari, then try to find away to move out.(any point provide more liberty)
-	if (move != -1 && heavy_policy(move, color))
-	{
-		play_move(I(move), J(move), color);
-		return move;
-	}
+	//int move = last_atari_heuristic(color);   //If the rival's last move is an atari, then try to find away to move out.(any point provide more liberty)
+	//if (move != -1 && heavy_policy(move, color))
+	//{
+	//	play_move(I(move), J(move), color);
+	//	return move;
+	//}
 	/*move = nakade_heuristic();		//not consider it at present
 	if (move != -1)
 	{
@@ -882,20 +893,20 @@ int GoBoard::select_and_play(int color)
 	return move;
 	}*/
 
-	move = mogo_pattern_heuristic(color);  // check whether the opponent's last move's around_eight_moves match a pattern, if match ,chose it.
-	if (move != -1 && heavy_policy(move, color))
-	{
-		play_move(I(move), J(move), color);
-		return move;
-	}
+	//move = mogo_pattern_heuristic(color);  // check whether the opponent's last move's around_eight_moves match a pattern, if match ,chose it.
+	//if (move != -1 && heavy_policy(move, color))
+	//{
+	//	play_move(I(move), J(move), color);
+	//	return move;
+	//}
 
-	move = capture_heuristic( color);					//try to find a move that will capture the opponent
-	if (move != -1 && heavy_policy(move, color))
-	{
-		play_move(I(move), J(move), color);
-		return move;
-	}
-
+	//move = capture_heuristic( color);					//try to find a move that will capture the opponent
+	//if (move != -1 && heavy_policy(move, color))
+	//{
+	//	play_move(I(move), J(move), color);
+	//	return move;
+	//}
+	int move;
 	move = random_legal_move(color);			//select a random  legal move
 	if (move != -1)
 	{
