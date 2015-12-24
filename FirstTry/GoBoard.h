@@ -5,7 +5,7 @@ public:
 	int * board;
 	int * next_stone;
 	static int board_size;
-	static double komi;
+	static float komi;
 	static int final_status[MAX_BOARD * MAX_BOARD];
 	int ko_i;
 	int ko_j;
@@ -24,12 +24,12 @@ public:
 	~GoBoard();
 
 	GoBoard * copy_board();
-	int  I(int pos);
-	int  J(int pos);
-	int POS(int i, int  j);
+	static int  I(int pos);
+	static int  J(int pos);
+	static int POS(int i, int  j);
 	int get_string(int i, int j, int *stonei, int *stonej);
 	void play_move( int i, int j, int color);
-	int pass_move(int i, int j);
+	static int pass_move(int i, int j);
 	int on_board(int i, int j);
 	int get_board( int i, int j);
 	int board_empty();
@@ -82,4 +82,6 @@ public:
 	bool match_cut1(int bi, int bj, int color);
 	bool match_cut2(int bi, int bj, int color);
 	bool match_board_side(int bi, int bj, int color);
+
+	bool GoBoard::is_self_atari(int point, int color);
 };
