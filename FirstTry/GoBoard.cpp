@@ -405,11 +405,11 @@ int GoBoard::generate_legal_moves(int* moves, int color)
 							moves[num_moves++] = POS(ai, aj);
 							break;
 						}
-						if (get_board(bi, bj) && get_board(bi, bj) == color && checkLiberty(bi, bj) == 1)
-						{
-							moves[num_moves++] = POS(ai, aj);
-							break;
-						}
+						//if (get_board(bi, bj) && get_board(bi, bj) == color && checkLiberty(bi, bj) == 1)
+						//{
+						//	moves[num_moves++] = POS(ai, aj);
+						//	break;
+						//}
 					}
 				}
 			}
@@ -562,10 +562,10 @@ bool GoBoard::available(int i, int j, int color)
 				if (on_board(bi, bj) && get_board(bi, bj) == OTHER_COLOR(color)) {
 					return true;
 				}
-				if (get_board(bi, bj) && get_board(bi, bj) == color && check_one_Liberty(bi, bj) == 1)
-				{
-					return true;
-				}
+				//if (get_board(bi, bj) && get_board(bi, bj) == color && check_one_Liberty(bi, bj) == 1)
+				//{
+				//	return true;
+				//}
 			}
 		}
 	}

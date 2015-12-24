@@ -448,11 +448,11 @@ void GoEngine::generate_move(int *i, int *j, int color)
 							moves[num_moves++] = POS(ai, aj);
 							break;
 						}
-						if (go_board->get_board(bi, bj) && go_board->get_board(bi, bj) == color && go_board->checkLiberty(bi, bj) == 1)
-						{
-							moves[num_moves++] = POS(ai, aj);
-							break;
-						}
+						//if (go_board->get_board(bi, bj) && go_board->get_board(bi, bj) == color && go_board->checkLiberty(bi, bj) == 1)
+						//{
+						//	moves[num_moves++] = POS(ai, aj);
+						//	break;
+						//}
 					}
 				}
 			}

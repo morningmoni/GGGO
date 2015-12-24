@@ -358,6 +358,7 @@ bool GoBoard::match_hane(int i, int j, int color)
 		}
 
 	}
+	return false;
 }
 bool GoBoard::match_cut1(int i, int j, int color) //symmetric
 {
