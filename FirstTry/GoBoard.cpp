@@ -862,12 +862,12 @@ int GoBoard::random_legal_move(int color)
 int GoBoard::select_and_play(int color)
 {
 
-	int move = last_atari_heuristic(color);   //If the rival's last move is an atari, then try to find away to move out.(any point provide more liberty)
-	if (move != -1)
-	{
-	play_move(I(move), J(move), color);
-	return move;
-	}
+	//int move = last_atari_heuristic(color);   //If the rival's last move is an atari, then try to find away to move out.(any point provide more liberty)
+	//if (move != -1)
+	//{
+	//play_move(I(move), J(move), color);
+	//return move;
+	//}
 	/*move = nakade_heuristic();		//not consider it at present
 	if (move != -1)
 	{
@@ -880,18 +880,19 @@ int GoBoard::select_and_play(int color)
 	play_move(I(move), J(move), color);
 	return move;
 	}*/
-	move = mogo_pattern_heuristic(color);  // check whether the opponent's last move's around_eight_moves match a pattern, if match ,chose it.
-	if (move != -1)
-	{
-	play_move(I(move), J(move), color);
-	return move;
-	}
-	move = capture_heuristic( color);					//try to find a move that will capture the opponent
-	if (move != -1)
-	{
-	play_move(I(move), J(move), color);
-	return move;
-	}
+	//move = mogo_pattern_heuristic(color);  // check whether the opponent's last move's around_eight_moves match a pattern, if match ,chose it.
+	//if (move != -1)
+	//{
+	//play_move(I(move), J(move), color);
+	//return move;
+	//}
+	//move = capture_heuristic( color);					//try to find a move that will capture the opponent
+	//if (move != -1)
+	//{
+	//play_move(I(move), J(move), color);
+	//return move;
+	//}
+	int move;
 	move = random_legal_move(color);			//select a random  legal move
 
 	if (move != -1)
@@ -923,7 +924,7 @@ bool GoBoard::is_surrounded(int point, int color)
 double GoBoard::chinese_count()
 {
 	int black_score = 0, white_score = 0, eyes_result = 0;
-	for (int i = 1; i <= board_size*board_size; i++) {
+	for (int i = 0; i < board_size*board_size; i++) {
 		if (board[i] == WHITE)
 		{
 			white_score++;
