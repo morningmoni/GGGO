@@ -2,6 +2,10 @@
 #include <random>
 #include <queue>
 #include <iostream>
+#include <windows.h>
+#include <stdio.h>
+#include <windef.h>
+
 void GoBoard::try_to_save_by_eat(int i, int j, int *saves, int &saves_number)// find the group's adjacent groups and check whether we can eat it
 {
 	int color = get_board(i, j);
@@ -77,6 +81,80 @@ int GoBoard::gains_liberty(int point, int color)
 	}
 	return lib > 1;
 
+}
+
+
+
+int GoBoard::save_atari(int point, int *list)
+{
+	int ans = 0, ai, aj, k;
+	int color = board[point];
+	if (color == EMPTY)
+		return 0;
+	int other = OTHER_COLOR(color);
+
+	if (point >= 0 && point < board_size*board_size)
+	{
+		int liberty = checkLiberty(I(point), J(point));
+		int ppos = point;
+		int ppos1 = ppos;
+		do {
+			for (k = 0; k < 4; ++k)
+			{
+				ai = I(ppos1) + deltai[k];
+				aj = J(ppos1) + deltaj[k];
+				if (liberty == 2 && on_board(ai, aj) && get_board(ai, aj) == EMPTY && gains_liberty(POS(ai, aj), color) && available(ai, aj, other))
+				{
+					list[ans++] = POS(ai, aj);
+				}
+				else if (on_board(ai, aj) && get_board(ai, aj) == other && checkLiberty(ai, aj) == 2)
+				{
+					int bpos = ppos1;
+					do {
+						int kk, bi, bj;
+						for (kk = 0; kk < 4; ++kk)
+						{
+							bi = I(bpos) + deltai[kk];
+							bj = J(bpos) + deltaj[kk];
+							if (on_board(bi, bj) && get_board(bi, bj) == EMPTY && gains_liberty(POS(bi, bj), other) && available(bi, bj, other))
+							{
+								list[ans++] = POS(bi, bj);
+							}
+						}
+						bpos = next_stone[bpos];
+					} while (bpos != ppos1);
+				}
+			}
+			ppos1 = next_stone[ppos1];
+		} while (ppos1 != ppos);
+	}
+	for (ai = max(I(point) - 1, 0); ai < min(I(point) + 1, board_size - 1); ++ai)
+	{
+		for (aj = max(J(point) - 1, 0); aj < min(J(point)+1, board_size-1); ++aj)
+		{
+			if (POS(ai, aj) == point)
+				continue;
+			if (on_board(ai, aj) && get_board(ai, aj) == other && checkLiberty(ai, aj) == 2)
+			{
+				int ppos1 = POS(ai, aj);
+				int bpos = ppos1;
+				do {
+					int kk, bi, bj;
+					for (kk = 0; kk < 4; ++kk)
+					{
+						bi = I(bpos) + deltai[kk];
+						bj = J(bpos) + deltaj[kk];
+						if (on_board(bi, bj) && get_board(bi, bj) == EMPTY && gains_liberty(POS(bi, bj), other) && available(bi, bj, other))
+						{
+							list[ans++] = POS(bi, bj);
+						}
+					}
+					bpos = next_stone[bpos];
+				} while (bpos != ppos1);
+			}
+		}
+	}
+	return ans;
 }
 
 int GoBoard::last_atari_heuristic( int color)

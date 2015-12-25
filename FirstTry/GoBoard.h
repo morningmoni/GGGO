@@ -68,7 +68,7 @@ public:
 	int is_anti_yijianjia_available(int color, int rival_move);
 	int is_anti_dian33_available(int color, int rival_move);
 	int is_kakari_available(int color, int rival_move);
-
+	int save_atari(int point, int *list);
 	bool heavy_policy(int point, int  side);
 	bool is_virtual_eye(int point, int color);
 	int check_one_Liberty(int i, int j);

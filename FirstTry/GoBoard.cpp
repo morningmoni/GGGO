@@ -883,13 +883,21 @@ int GoBoard::random_legal_move(int color)
 int GoBoard::select_and_play(int color)
 {
 
-	int move;
+	int save_atari_plays[MAX_BOARD*MAX_BOARD];
+	int save_atari_number = save_atari(POS(rival_move_i, rival_move_j), save_atari_plays);
+	if (save_atari_number>=0)
+	{
+		int move = save_atari_plays[rand()*save_atari_number / (RAND_MAX + 1)];
+		play_move(I(move), J(move), color);
+		return move;
+	}
 	//move = last_atari_heuristic(color);   //If the rival's last move is an atari, then try to find away to move out.(any point provide more liberty)
 	//if (move != -1 )
 	//{
 	//	play_move(I(move), J(move), color);
 	//	return move;
 	//}
+	int move;
 	/*move = nakade_heuristic();		//not consider it at present
 	if (move != -1)
 	{
