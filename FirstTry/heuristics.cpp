@@ -1,6 +1,7 @@
 #include "GoBoard.h"
 #include <random>
 #include <queue>
+#include <iostream>
 void GoBoard::try_to_save_by_eat(int i, int j, int *saves, int &saves_number)// find the group's adjacent groups and check whether we can eat it
 {
 	int color = get_board(i, j);
@@ -48,8 +49,9 @@ int GoBoard::gains_liberty(int point, int color)
 	std::queue<int>q;
 	q.push(point);
 	int lib = 0;
-	int cur;
+	int cur ;
 	int visited[MAX_BOARD*MAX_BOARD];
+	memset(visited, 0, sizeof(int)*board_size*board_size);
 	while (!q.empty())
 	{
 		cur = q.front();
@@ -129,27 +131,46 @@ int GoBoard::last_atari_heuristic( int color)
 		return captures[rand()*captures_number / (RAND_MAX + 1)];
 	return -1;
 }*/
-int GoBoard::capture_heuristic(int color)
+int GoBoard::capture_move(int bi,int bj,int color)
 {
-	int capture_moves[8];
+	if (!on_board(bi, bj))
+		return -1;
+	if (get_board(bi, bj) != OTHER_COLOR(color))
+		return -1;
+	int move = find_one_Liberty_for_atari(bi, bj);
+	if (move == -1)
+		return -1;
+	if (!available(I(move), J(move), color))
+		return -1;
+	//if (!gains_liberty(move, OTHER_COLOR(color)))
+	//	return -1;
+	return move;
+}
+int GoBoard::capture_heuristic(int color)// sometimes check  the same string
+{
+	int capture_moves[18];
 	int captures_moves_number = 0;
 	for (int i = 0; i < 8; ++i)
 	{
 		int bi = rival_move_i + around_i[i];
 		int bj = rival_move_j + around_j[i];
-		if (!on_board(bi, bj))
-			continue;
-		if (get_board(bi, bj) != OTHER_COLOR(color))
-			continue;
-		int move = find_one_Liberty_for_atari(bi, bj);
-		if (move == -1)
-			continue;
-		if (!available(I(move),J(move),color))
-			continue;
-		if (!gains_liberty(move, OTHER_COLOR(color)))
-			continue;
-		capture_moves[captures_moves_number++] = move;
+		int move = capture_move(bi,bj,color);
+		if (move != -1)
+			capture_moves[captures_moves_number++] = move;
 	}
+	for (int i = 0; i < 8; ++i)
+	{
+		int bi = my_last_move_i+ around_i[i];
+		int bj = my_last_move_j + around_j [i];
+		int move = capture_move(bi, bj, color);
+		if (move != -1)
+			capture_moves[captures_moves_number++] = move;
+	}
+	int bi = rival_move_i;
+	int bj = rival_move_j;
+	int move = capture_move(bi, bj, color);
+	if (move != -1)
+		capture_moves[captures_moves_number++] = move;
 	if (captures_moves_number)
 	{
 		return capture_moves[rand()*captures_moves_number / (RAND_MAX + 1)];

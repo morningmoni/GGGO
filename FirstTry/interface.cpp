@@ -91,7 +91,7 @@ GoBoard * main_go_board = NULL;
 GoEngine * main_engine = NULL;
 int _tmain(int argc, char** argv)
 {
-	unsigned int random_seed = 1;
+	unsigned int random_seed = time(NULL);
 	//ofstream outfile1("log3.txt");
 	//time_t m_time = time(NULL);
 	//tm* t = localtime(&m_time);
