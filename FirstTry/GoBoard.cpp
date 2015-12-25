@@ -892,21 +892,20 @@ int GoBoard::select_and_play(int color)
 	play_move(I(move), J(move), color);
 	return move;
 	}*/
-
-	//move = mogo_pattern_heuristic(color);  // check whether the opponent's last move's around_eight_moves match a pattern, if match ,chose it.
-	//if (move != -1 && heavy_policy(move, color))
-	//{
-	//	play_move(I(move), J(move), color);
-	//	return move;
-	//}
+	int move;
+	move = mogo_pattern_heuristic(color);  // check whether the opponent's last move's around_eight_moves match a pattern, if match ,chose it.
+	if (move != -1 )
+	{
+		play_move(I(move), J(move), color);
+		return move;
+	}
 
 	//move = capture_heuristic( color);					//try to find a move that will capture the opponent
-	//if (move != -1 && heavy_policy(move, color))
+	//if (move != -1 )
 	//{
 	//	play_move(I(move), J(move), color);
 	//	return move;
 	//}
-	int move;
 	move = random_legal_move(color);			//select a random  legal move
 	if (move != -1)
 	{

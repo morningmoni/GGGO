@@ -1,5 +1,6 @@
 #include "GoBoard.h"
 #include <random>
+#include <queue>
 void GoBoard::try_to_save_by_eat(int i, int j, int *saves, int &saves_number)// find the group's adjacent groups and check whether we can eat it
 {
 	int color = get_board(i, j);
@@ -39,30 +40,41 @@ void GoBoard::try_to_save_by_eat(int i, int j, int *saves, int &saves_number)// 
 
 }
 
-int GoBoard::gains_liberty(int move,int color)
+
+
+
+int GoBoard::gains_liberty(int point, int color)
 {
-	int libs = 0;
-	for (int j = 0; j < 4 && libs<2; ++j)
+	std::queue<int>q;
+	q.push(point);
+	int lib = 0;
+	int cur;
+	int visited[MAX_BOARD*MAX_BOARD];
+	while (!q.empty())
 	{
-		int ne_lib_i = I(move) + deltai[j];				//check the liberty's near by provides more liberty 
-		int ne_lib_j = J(move) + deltaj[j];
-		if (!on_board(ne_lib_i, ne_lib_j))
-			continue;
-		if (get_board(ne_lib_i, ne_lib_j) == OTHER_COLOR(color))
-			continue;
-		if (get_board(ne_lib_i, ne_lib_j) == EMPTY)
+		cur = q.front();
+		visited[cur] = 1;
+		q.pop();
+		for (int k = 0; k < 4; ++k)
 		{
-			libs++;
-			continue;
-		}
-		if (get_board(ne_lib_i, ne_lib_j) == color)
-		{
-			libs += checkLiberty(ne_lib_i, ne_lib_j) - 1;
+			int ai = I(cur) + deltai[k];
+			int aj = J(cur) + deltaj[k];
+			if (on_board(ai, aj) && !visited[POS(ai, aj)])
+			{
+				if (get_board(ai, aj) == color)
+					q.push(POS(ai, aj));
+				else if ( get_board(ai,aj) == EMPTY)
+				{
+					++lib;
+					visited[POS(ai, aj)] = 1;
+					if (lib > 1)
+						return 1;
+				}
+			}
 		}
 	}
-	if (libs > 1)
-		return true;
-	return false;
+	return lib > 1;
+
 }
 
 int GoBoard::last_atari_heuristic( int color)
